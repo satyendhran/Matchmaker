@@ -109,3 +109,5 @@ When a knockout round has an odd number of players, the system:
 ---
 
 Built with **Python**, **tkinter**, and **SQLite** for local tournament management.
+
+Added Readme Using Claude and Verifed.
