@@ -1,113 +1,111 @@
 # Tournament Matchmaking System
 
-A comprehensive desktop application for managing chess-style tournaments with support for both Round-Robin and Knockout formats.
+A feature-rich desktop application for chess-style tournament management with support for Round-Robin and Knockout.
 
 ---
 
 ## Features
 
 ### Tournament Management
-- **Multiple Tournament Types:** Support for Round-Robin and Single-Elimination Knockout tournaments
-- **Player Database:** Centralized player management across all tournaments
-- **Match Scheduling:** Automatic pairing generation based on tournament format
-- **Live Rankings:** Real-time point calculation and leaderboard display
-- **Match Results:** Track wins, losses, draws with automatic stat updates
+- **Multiple Tournament Types:** Round-Robin and Single-Elimination Knockout tournament support
+- **Player Database:** Unified player administration across all tournaments
+- **Match Scheduling:** Automatic pairing generation depending on tournament type
+- **Live Rankings:** Live point calculation and leader board display
+- **Match Results:** Record wins, losses, draws with automatic stats update
 
 ### Round-Robin Tournaments
-- Circle method scheduling for fair round-robin play
-- Automatic BYE handling for odd player counts
-- Prevention of duplicate pairings
-- Continuous scheduling across multiple rounds
+- Circle method scheduling for equitable round-robin play
+- Automatic handling of BYE for odd numbers of players
+- Avoidance of duplicate pairings
+- Real-time scheduling for multiple rounds
 
 ### Knockout Tournaments
-- Single-elimination bracket generation
-- Automatic winner progression
-- Waiting list management for odd player counts
-- Auto-advancement for unpaired players when all matches complete
+- Generation of single-elimination brackets
+- Automatic advancing of winners
+- Waiting list management for odd numbers of players
+- Auto-advancement of unpaired players once all matches are finished
 
 ### User Interface
 - **Player Panel:** Add and manage players
 - **Tournament Panel:** Create tournaments and assign players
 - **Round Management:** Create and navigate between rounds
-- **Match Display:** View all matches with results
-- **Rankings Table:** See standings with points, wins, draws, losses
+- **Match Display:** List all matches with results
+- **Rankings Table:** List standings with points, wins, draws, losses
 
 ---
 
 ## Database Schema
 
-The application uses SQLite with the following tables:
+The app employs SQLite with the following tables:
 
-- `players`: Player information
-- `tournaments`: Tournament details
-- `tournament_players`: Player-tournament associations with elimination status
+- `players`: Information about players
+- `tournaments`: Data about tournaments
+- `tournament_players`: Player-tournament relationships with elimination status
 - `rounds`: Round metadata (type, ordinal)
-- `matches`: Match pairings and results
-- `stats`: Player statistics per tournament
-- `waiting_list`: Buffer for unpaired players in knockout rounds
+- `matches`: Match pairings and outcomes
+- `stats`: Player stats per tournament
+- `waiting_list`: Unpaired player buffer for knockout rounds
 
 ---
 
 ## Scoring System
-- **Win:** 1 point  
-- **Draw:** 0.5 points each player  
-- **Loss:** 0 points  
-- **Auto-BYE:** 1 point (automatic advancement)
+- **Win:** 1 point
+- **Draw:** 0.5 points per player
+- **Loss:** 0 points
+- **Auto-BYE:** 1 point (automatic pass)
 
 ---
 
 ## Advanced Features
 
 ### Waiting List (Knockout)
-When a knockout round has an odd number of players, the system:  
-1. Pairs as many players as possible  
-2. Places remaining player(s) in waiting list  
-3. Automatically pairs waiting players when previous matches complete  
-4. Awards auto-BYE if only one player remains unpaired
+When a knockout round contains an odd number of players, the system:
+1. Pairs as many players as possible
+2. Placed remaining player(s) in waiting list
+3. Automatically pairs waiting players when earlier matches are over
+4. Auto-BYES one player if there is only one unpaired player
 
 ### Match Validation
-- Prevents creating new rounds while matches are pending
-- Prevents duplicate pairings in round-robin
-- Automatically eliminates losers in knockout rounds
-- Stops knockout creation when only one active player remains
+- Disallows generating new rounds when matches are in progress
+- Disallows repeat pairings in round-robin
+- Automatically eliminates knockout round losers
+- Disallows knockout creation when just one active player is left
 
 ---
 
 ## File Structure
-- `tournament.py`: Main application file  
-- `tournament.db`: SQLite database (created automatically)
+- `tournament.py`: Main program file
+- `tournament.db`: SQLite database (automatically generated)
 
 ---
 
 ## Tips
-- Complete all matches in a round before creating the next round
-- Use Round-Robin for league-style play where everyone faces everyone
-- Use Knockout for tournament brackets with elimination
-- Rankings update automatically after each match result
-- Player elimination status shown as `[active]` or `[eliminated]`
+- Finish all matches in a round before generating the next round
+- Use Round-Robin for league-style competition where everyone plays everyone
+- Use Knockout for tournament brackets and elimination
+- Rankings automatically update after every match result
+- Player elimination status indicated as `[active]` or `[eliminated]`
 
 ---
 
 ## Limitations
-- Single-elimination knockout only (no double-elimination)
+- Single-elimination knockout only, no double-elimination
 - No tiebreaker rules beyond points and wins
-- No match scheduling/calendar features
-- No undo functionality for match results
+- No scheduling/calendar features of matches
+- No undo of match results
 
 ---
 
 ## Troubleshooting
-- **Issue:** Cannot create new round  
-  **Solution:** Ensure all matches from previous round have results entered
+- **Issue:** Cannot create new round
+**Solution:** Make sure all previous round matches have results input
 
-- **Issue:** Player appears twice  
-  **Solution:** Each player should only be added once to the database
+- **Issue:** Player showing up twice
+  **Solution:** Put each player only once into the database
 
-- **Issue:** Rankings not updating  
-  **Solution:** Click "Show Rankings" to recalculate stats
+- **Issue:** Rankings not reflecting
+  **Solution:** Press "Show Rankings" to update stats
 
 ---
 
-Built with **Python**, **tkinter**, and **SQLite** for local tournament management.
-
-Added Readme Using Claude and Verifed.
+Developed with **Python**, **tkinter**, and **SQLite** for local tournament management.
