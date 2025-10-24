@@ -1,3 +1,8 @@
+"""
+Service layer implementing business logic.
+Orchestrates strategies, calculators, and repository.
+"""
+
 from typing import Any
 from tournament_core import (
     Player,
@@ -118,13 +123,17 @@ class TournamentService:
             result: Match result with winners and rankings
             calculator_name: Name of points calculator to use (optional)
         """
-        # Update match result
-        self.repository.update_match_result(match_id, result)
-
-        # Get match details
+        # Get match details first
         match = self.repository.get_match(match_id)
         if not match:
             raise ValueError(f"Match not found: {match_id}")
+
+        # Check if this is a knockout match
+        round_type = self.repository.get_round_type(match.round_id)
+        is_knockout = round_type == "knockout"
+
+        # Update match result in database
+        self.repository.update_match_result(match_id, result)
 
         # Get calculator
         calc_name = calculator_name or self.default_calculator
@@ -138,7 +147,7 @@ class TournamentService:
         self._update_player_statistics(match, result, calculator)
 
         # Handle elimination for knockout tournaments
-        if self._is_knockout_match(match):
+        if is_knockout and not result.is_draw:
             self._handle_knockout_elimination(match, result)
 
     def get_standings(self, tournament_id: str) -> list[dict[str, Any]]:
@@ -212,18 +221,17 @@ class TournamentService:
                 return stat
         return {"wins": 0, "draws": 0, "losses": 0, "matches_played": 0, "points": 0}
 
-    def _is_knockout_match(self, match: Match) -> bool:
-        """Check if a match is part of a knockout round."""
-        # This should query the round type from repository
-        return False
-
     def _handle_knockout_elimination(self, match: Match, result: MatchResult) -> None:
         """Handle player elimination in knockout matches."""
-        # Mark losers as unable to play
+        # Eliminate all non-winners
         for player_id in match.player_ids:
             if player_id not in result.winner_ids:
-                # Mark as eliminated in repository
-                pass
+                # Mark player as eliminated
+                self.repository.eliminate_player(match.tournament_id, player_id)
+
+        # Ensure winners remain active
+        for winner_id in result.winner_ids:
+            self.repository.activate_player(match.tournament_id, winner_id)
 
 
 class RoundFactory:

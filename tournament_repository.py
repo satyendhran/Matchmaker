@@ -1,3 +1,7 @@
+"""
+SQLite implementation of the tournament repository.
+"""
+
 import sqlite3
 import json
 from typing import Any
@@ -128,7 +132,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
             )
             conn.commit()
 
-    def get_player(self, player_id: str) -> Player:
+    def get_player(self, player_id: str) -> Player | None:
         """Get a player by ID."""
         with self._get_connection() as conn:
             row = conn.execute(
@@ -139,7 +143,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
                 return Player(
                     id=row["id"], name=row["name"], created_at=row["created_at"]
                 )
-            raise ValueError("Player Does Not Exists")
+            return None
 
     def list_players(self) -> list[Player]:
         """list all players."""
@@ -176,7 +180,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
             )
             conn.commit()
 
-    def get_match(self, match_id: str) -> Match:
+    def get_match(self, match_id: str) -> Match | None:
         """Get a match by ID."""
         with self._get_connection() as conn:
             row = conn.execute(
@@ -185,7 +189,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
 
             if row:
                 return self._row_to_match(row)
-            raise ValueError("Match Does Not Exists")
+            return None
 
     def list_matches_for_round(self, round_id: str) -> list[Match]:
         """list all matches for a round."""
@@ -213,6 +217,40 @@ class SQLiteTournamentRepository(ITournamentRepository):
                 ),
             )
             conn.commit()
+
+    def eliminate_player(self, tournament_id: str, player_id: str) -> None:
+        """Mark a player as eliminated (unable to play)."""
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                UPDATE tournament_players 
+                SET able_to_play = 0 
+                WHERE tournament_id = ? AND player_id = ?
+            """,
+                (tournament_id, player_id),
+            )
+            conn.commit()
+
+    def activate_player(self, tournament_id: str, player_id: str) -> None:
+        """Mark a player as active (able to play)."""
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                UPDATE tournament_players 
+                SET able_to_play = 1 
+                WHERE tournament_id = ? AND player_id = ?
+            """,
+                (tournament_id, player_id),
+            )
+            conn.commit()
+
+    def get_round_type(self, round_id: str) -> str:
+        """Get the type of a round."""
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT round_type FROM rounds WHERE id = ?", (round_id,)
+            ).fetchone()
+            return row["round_type"] if row else None
 
     def save_tournament(self, tournament_id: str, name: str, created_at: str) -> None:
         """Save a tournament."""

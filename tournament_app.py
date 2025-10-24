@@ -1,7 +1,11 @@
-import tkinter as tk
-from tkinter import ttk, messagebox, simpledialog
+"""
+Refactored GUI application using SOLID principles.
+Now supports dynamic plugin loading and n-player games.
+"""
 
-# Import our new architecture
+import tkinter as tk
+from tkinter import messagebox, simpledialog, Toplevel, Label, Button, StringVar, Radiobutton,ttk
+
 from tournament_core import (
     MatchmakingStrategyRegistry,
     PointsCalculatorRegistry,
@@ -21,7 +25,7 @@ from tournament_calculators import (
     PercentagePointsCalculator,
 )
 from tournament_repository import SQLiteTournamentRepository
-from tournament_service import TournamentService, RoundFactory
+from tournament_service import TournamentService
 from plugin_loader import PluginLoader
 
 
@@ -33,7 +37,7 @@ class TournamentApp:
 
     def __init__(self, root: tk.Tk):
         self.root = root
-        root.title("Tournament Matchmaking System (SOLID Edition)")
+        root.title("Tournament Matchmaking System")
 
         # Initialize components
         self.repository = SQLiteTournamentRepository()
@@ -107,8 +111,8 @@ class TournamentApp:
         )
         self.player_list.pack(pady=5)
 
-        ttk.Button(frame, text="Add Player", command=self.add_player).pack(pady=2)
-        ttk.Button(frame, text="Refresh", command=self.refresh_players).pack(pady=2)
+        ttk.Button(frame, text="Add Player", command=self.add_player).pack(pady=5)
+        ttk.Button(frame, text="Refresh", command=self.refresh_players).pack(pady=5)
 
     def _create_tournaments_column(self, parent):
         """Create the tournaments management column."""
@@ -193,7 +197,7 @@ class TournamentApp:
         ttk.Button(create_frame, text="Create Round", command=self.create_round).pack(
             pady=5
         )
-
+        
         # Rounds list
         ttk.Label(frame, text="Rounds", font=("Arial", 10, "bold")).pack(pady=(10, 5))
         self.rounds_list = tk.Listbox(frame, height=6)
@@ -303,7 +307,7 @@ class TournamentApp:
                 self.current_tournament = row["id"]
                 self.refresh_tournament_players()
                 self.refresh_rounds()
-                messagebox.showinfo("Success", f"Tournament loaded")
+                messagebox.showinfo("Success", "Tournament loaded")
 
     def refresh_tournament_players(self):
         """Refresh the tournament players list."""
@@ -313,9 +317,11 @@ class TournamentApp:
 
         players = self.repository.get_tournament_players(self.current_tournament)
         for p in players:
-            status = "✓" if p.get("able_to_play", 1) == 1 else "✗"
+            status = "ACTIVE" if p.get("able_to_play", 1) == 1 else "ELIMINATED"
+            status_symbol = "[✓]" if p.get("able_to_play", 1) == 1 else "[✗]"
             self.tournament_players.insert(
-                tk.END, f"{status} {p['player_id'][:8]}... - {p['name']}"
+                tk.END,
+                f"{status_symbol} {p['player_id'][:8]}... - {p['name']} ({status})",
             )
 
     def add_players_to_tournament(self):
@@ -371,24 +377,46 @@ class TournamentApp:
         self.strategy_combo["values"] = strategies
 
     def create_round(self):
-        """Create a new round with selected strategy."""
+        """Create a new round only if all previous rounds are completed."""
         if not self.current_tournament:
             messagebox.showerror("Error", "Please load a tournament first")
             return
 
-        strategy = self.strategy_var.get()
-        players_per_match = self.players_per_match.get()
-
-        # Check if strategy supports this player count
-        supported = self.strategy_registry.get_strategy(strategy)
-        if supported and not supported.supports_players_per_match(players_per_match):
-            messagebox.showerror(
-                "Error",
-                f"Strategy '{strategy}' doesn't support {players_per_match}-player matches",
-            )
-            return
-
         try:
+            # --- Check if previous rounds are complete ---
+            with self.repository._get_connection() as conn:
+                unfinished = conn.execute(
+                    """
+                    SELECT COUNT(*) AS incomplete_count
+                    FROM matches m
+                    JOIN rounds r ON m.round_id = r.id
+                    WHERE r.tournament_id = ?
+                    AND m.result_id IS NULL
+                    """,
+                    (self.current_tournament,),
+                ).fetchone()
+
+                if unfinished and unfinished["incomplete_count"] > 0:
+                    messagebox.showwarning(
+                        "Round Not Complete",
+                        f"There are still {unfinished['incomplete_count']} unfinished matches "
+                        "in the current round.\n\nPlease record all results before creating a new round.",
+                    )
+                    return
+
+            # --- Proceed with round creation if all matches complete ---
+            strategy = self.strategy_var.get()
+            players_per_match = self.players_per_match.get()
+
+            # Validate player count compatibility
+            supported = self.strategy_registry.get_strategy(strategy)
+            if supported and not supported.supports_players_per_match(players_per_match):
+                messagebox.showerror(
+                    "Error",
+                    f"Strategy '{strategy}' doesn't support {players_per_match}-player matches",
+                )
+                return
+
             config = RoundConfig(
                 tournament_id=self.current_tournament,
                 round_type=strategy,
@@ -396,19 +424,19 @@ class TournamentApp:
             )
 
             result = self.service.create_round(config)
-
             self.refresh_rounds()
 
             msg = (
-                f"Round #{result['ordinal']} created using '{strategy}' strategy\n"
-                f"Matches: {len(result['matches'])}\n"
-                f"Waiting: {len(result['waiting_players'])}"
+                f" Round #{result['ordinal']} created using '{strategy}' strategy.\n\n"
+                f"Matches created: {len(result['matches'])}\n"
+                f"Waiting players: {len(result['waiting_players'])}"
             )
 
             messagebox.showinfo("Success", msg)
 
         except Exception as e:
             messagebox.showerror("Error", f"Failed to create round: {e}")
+
 
     def refresh_rounds(self):
         """Refresh the rounds list."""
@@ -492,9 +520,20 @@ class TournamentApp:
             self.matches_text.insert(tk.END, "No matches in this round.\n")
             return
 
+        # Get round type
+        round_type = self.repository.get_round_type(self.current_round)
+
         # Header
-        self.matches_text.insert(tk.END, "Matches for Round\n")
-        self.matches_text.insert(tk.END, "=" * 80 + "\n\n")
+        self.matches_text.insert(tk.END, f"Matches for Round ({round_type.upper()})\n")
+        self.matches_text.insert(tk.END, "=" * 80 + "\n")
+
+        if round_type == "knockout":
+            self.matches_text.insert(
+                tk.END, "NOTE: Losers will be ELIMINATED from this tournament\n"
+            )
+            self.matches_text.insert(tk.END, "=" * 80 + "\n")
+
+        self.matches_text.insert(tk.END, "\n")
 
         for i, m in enumerate(matches, 1):
             # Get player names
@@ -508,7 +547,7 @@ class TournamentApp:
             status = "Pending"
             if m.result:
                 if m.auto_bye:
-                    status = "BYE"
+                    status = "BYE (Auto-advance)"
                 elif m.result == "draw":
                     status = "DRAW"
                 else:
@@ -518,6 +557,18 @@ class TournamentApp:
                             wp = self.repository.get_player(wid)
                             winners.append(wp.name if wp else wid[:8])
                     status = f"Winner: {', '.join(winners)}"
+
+                    if round_type == "knockout":
+                        # Show eliminated players
+                        losers = [
+                            pid for pid in m.player_ids if pid not in m.winner_ids
+                        ]
+                        if losers:
+                            loser_names = []
+                            for lid in losers:
+                                lp = self.repository.get_player(lid)
+                                loser_names.append(lp.name if lp else lid[:8])
+                            status += f" | ELIMINATED: {', '.join(loser_names)}"
 
             self.matches_text.insert(tk.END, f"Match {i}: {players_str}\n")
             self.matches_text.insert(tk.END, f"  Status: {status}\n")
@@ -578,82 +629,137 @@ class TournamentApp:
         ttk.Button(dialog, text="Record Result", command=submit_result).pack(pady=10)
 
     def _record_2player_result(self, match, parent_dialog):
-        """Record result for 2-player match."""
+        """Record result for 2-player match using a radio button dialog."""
         player1 = self.repository.get_player(match.player_ids[0])
         player2 = self.repository.get_player(match.player_ids[1])
 
-        choice = simpledialog.askstring(
-            "Match Result",
-            f"{player1.name} vs {player2.name}\n\n"
-            f"Enter: '1' for {player1.name} wins\n"
-            f"       '2' for {player2.name} wins\n"
-            f"       'draw' for draw",
-            parent=parent_dialog,
-        )
+        # Create a new dialog window
+        dialog = Toplevel(parent_dialog)
+        dialog.title("Match Result")
+        dialog.geometry("300x200")
+        dialog.resizable(False, False)
+        dialog.grab_set()  # Make it modal
 
-        if not choice:
-            return
+        Label(dialog, text=f"{player1.name} vs {player2.name}", font=("Arial", 12, "bold")).pack(pady=10)
 
-        choice = choice.strip().lower()
+        result_var = StringVar(value="")  # Holds the selected option
 
-        try:
-            if choice == "draw":
-                result = MatchResult(
-                    match_id=match.id, winner_ids=[], rankings={}, is_draw=True
-                )
-            elif choice in ("1", player1.name.lower()):
-                result = MatchResult(
-                    match_id=match.id,
-                    winner_ids=[match.player_ids[0]],
-                    rankings={match.player_ids[0]: 1, match.player_ids[1]: 2},
-                )
-            elif choice in ("2", player2.name.lower()):
-                result = MatchResult(
-                    match_id=match.id,
-                    winner_ids=[match.player_ids[1]],
-                    rankings={match.player_ids[1]: 1, match.player_ids[0]: 2},
-                )
-            else:
-                messagebox.showerror("Error", "Invalid choice")
+        # Radio buttons for choices
+        Radiobutton(dialog, text=f"{player1.name} wins", variable=result_var, value="1").pack(anchor="w", padx=30)
+        Radiobutton(dialog, text=f"{player2.name} wins", variable=result_var, value="2").pack(anchor="w", padx=30)
+        Radiobutton(dialog, text="Draw", variable=result_var, value="draw").pack(anchor="w", padx=30)
+
+        def submit():
+            choice = result_var.get().strip().lower()
+            if not choice:
+                messagebox.showwarning("Warning", "Please select a result.", parent=dialog)
                 return
 
-            self.service.record_match_result(match.id, result)
-            parent_dialog.destroy()
-            self.show_matches()
-            self.show_standings()
-            messagebox.showinfo("Success", "Match result recorded")
+            try:
+                if choice == "draw":
+                    result = MatchResult(
+                        match_id=match.id, winner_ids=[], rankings={}, is_draw=True
+                    )
+                elif choice == "1":
+                    result = MatchResult(
+                        match_id=match.id,
+                        winner_ids=[match.player_ids[0]],
+                        rankings={match.player_ids[0]: 1, match.player_ids[1]: 2},
+                    )
+                elif choice == "2":
+                    result = MatchResult(
+                        match_id=match.id,
+                        winner_ids=[match.player_ids[1]],
+                        rankings={match.player_ids[1]: 1, match.player_ids[0]: 2},
+                    )
 
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to record result: {e}")
+                self.service.record_match_result(match.id, result)
+                dialog.destroy()
+                parent_dialog.destroy()
+                self.show_matches()
+                self.show_standings()
+                self.refresh_tournament_players()
+
+                messagebox.showinfo(
+                    "Success",
+                    "Match result recorded. Losers have been eliminated from knockout tournament.",
+                )
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to record result: {e}", parent=dialog)
+
+        # Buttons
+        Button(dialog, text="Submit", command=submit, width=10).pack(pady=10)
+        Button(dialog, text="Cancel", command=dialog.destroy, width=10).pack()
+
+        dialog.wait_window(dialog)
 
     def _record_nplayer_result(self, match, parent_dialog):
-        """Record result for n-player match."""
-        # Create ranking dialog
+        """Record result for n-player match with improved layout and validation."""
         rank_dialog = tk.Toplevel(parent_dialog)
         rank_dialog.title("Enter Rankings")
+        rank_dialog.geometry("400x400")
+        rank_dialog.resizable(False, False)
+        rank_dialog.grab_set()  # Modal dialog
 
         ttk.Label(
             rank_dialog,
-            text="Enter finishing position for each player:",
-            font=("Arial", 10, "bold"),
+            text=f"Enter finishing position for each player:",
+            font=("Arial", 11, "bold"),
         ).pack(pady=10)
 
+        container = ttk.Frame(rank_dialog)
+        container.pack(fill="both", expand=True, padx=15)
+
+        # Scrollable area (in case of many players)
+        canvas = tk.Canvas(container)
+        scrollbar = ttk.Scrollbar(container, orient="vertical", command=canvas.yview)
+        scroll_frame = ttk.Frame(canvas)
+
+        scroll_frame.bind(
+            "<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+
+        canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
         rank_vars = {}
+        num_players = len(match.player_ids)
+
+        # Dropdown for ranking positions
         for i, pid in enumerate(match.player_ids):
             player = self.repository.get_player(pid)
-            frame = ttk.Frame(rank_dialog)
-            frame.pack(fill="x", pady=2, padx=10)
+            frame = ttk.Frame(scroll_frame)
+            frame.pack(fill="x", pady=4)
 
-            ttk.Label(frame, text=f"{player.name}:", width=20).pack(side="left")
-            var = tk.IntVar(value=i + 1)
-            ttk.Spinbox(
-                frame, from_=1, to=len(match.player_ids), textvariable=var, width=10
-            ).pack(side="left")
+            ttk.Label(frame, text=f"{player.name}:", width=20, anchor="w").pack(side="left")
+
+            var = tk.StringVar(value=str(i + 1))
+            combo = ttk.Combobox(
+                frame,
+                textvariable=var,
+                values=[str(i) for i in range(1, num_players + 1)],
+                state="readonly",
+                width=5,
+            )
+            combo.pack(side="left", padx=10)
             rank_vars[pid] = var
 
         def submit_rankings():
             try:
-                rankings = {pid: var.get() for pid, var in rank_vars.items()}
+                # Collect and validate ranks
+                rankings = {pid: int(var.get()) for pid, var in rank_vars.items()}
+
+                # Check for duplicate ranks
+                if len(set(rankings.values())) != len(rankings):
+                    messagebox.showwarning(
+                        "Invalid Rankings",
+                        "Each player must have a unique finishing position.",
+                        parent=rank_dialog,
+                    )
+                    return
 
                 # Find winners (rank 1)
                 winners = [pid for pid, rank in rankings.items() if rank == 1]
@@ -666,35 +772,40 @@ class TournamentApp:
                 )
 
                 self.service.record_match_result(match.id, result)
+
                 rank_dialog.destroy()
                 parent_dialog.destroy()
                 self.show_matches()
                 self.show_standings()
-                messagebox.showinfo("Success", "Match result recorded")
+                self.refresh_tournament_players()
+
+                messagebox.showinfo(
+                    "Success",
+                    "Match result recorded. Non-winners have been eliminated from knockout tournament.",
+                )
 
             except Exception as e:
-                messagebox.showerror("Error", f"Failed to record result: {e}")
+                messagebox.showerror("Error", f"Failed to record result: {e}", parent=rank_dialog)
 
-        ttk.Button(rank_dialog, text="Submit Rankings", command=submit_rankings).pack(
-            pady=10
-        )
+        ttk.Button(rank_dialog, text="Submit Rankings", command=submit_rankings).pack(pady=15)
+
 
     def reload_plugins(self):
-        """Reload plugins from plugins directory."""
-        try:
-            self.plugin_loader.discover_and_load_plugins()
-            self.refresh_strategy_list()
-            self.refresh_calculator_list()
-            messagebox.showinfo("Success", "Plugins reloaded")
-        except Exception as e:
-            messagebox.showerror("Error", f"Failed to reload plugins: {e}")
+            """Reload plugins from plugins directory."""
+            try:
+                self.plugin_loader.discover_and_load_plugins()
+                self.refresh_strategy_list()
+                self.refresh_calculator_list()
+                messagebox.showinfo("Success", "Plugins reloaded")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to reload plugins: {e}")
 
 
 def main():
     """Main entry point."""
     root = tk.Tk()
     root.geometry("1200x700")
-    app = TournamentApp(root)
+    TournamentApp(root)
     root.mainloop()
 
 

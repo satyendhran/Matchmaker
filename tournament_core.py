@@ -1,3 +1,8 @@
+"""
+Core interfaces and base classes for the tournament system.
+Following SOLID principles for extensibility.
+"""
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
@@ -172,6 +177,21 @@ class ITournamentRepository(ABC):
     def update_player_stats(
         self, tournament_id: str, player_id: str, stats: dict[str, float]
     ) -> None:
+        pass
+
+    @abstractmethod
+    def eliminate_player(self, tournament_id: str, player_id: str) -> None:
+        """Mark a player as eliminated from tournament."""
+        pass
+
+    @abstractmethod
+    def activate_player(self, tournament_id: str, player_id: str) -> None:
+        """Mark a player as active in tournament."""
+        pass
+
+    @abstractmethod
+    def get_round_type(self, round_id: str) -> str:
+        """Get the type of a round."""
         pass
 
 
