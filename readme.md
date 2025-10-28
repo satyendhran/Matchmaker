@@ -16,6 +16,7 @@ A modular tournament management system developed according to SOLID principles, 
 ## Prerequisites
 
 - Python 3.8 or later
+- Flask
 - Standard library only (no dependencies)
 
 ## Installation
@@ -31,13 +32,16 @@ python tournament_app.py
 
 ```
 tournament-matchmaking-system/
+|──app.py                           # Flask GUI               
+|──templates/
+    └── index.html                  # GUI Template
 ├── tournament_core.py              # Core interfaces and abstract base classes
 ├── tournament_strategies.py        # Built-in matchmaking strategy implementations
 ├── tournament_calculators.py       # Built-in points calculator implementations
 ├── tournament_repository.py        # SQLite repository implementation
 ├── tournament_service.py           # Business logic service layer
 ├── plugin_loader.py                # Dynamic plugin loading system
-├── tournament_app.py    # GUI application entry point
+├── tournament_app.py               # GUI application entry point
 ├── plugins/                        # Custom plugin directory
 │   ├── example_strategy.py
 │   └── example_calculator.py
@@ -61,7 +65,10 @@ tournament-matchmaking-system/
 ```bash
 python tournament_app.py
 ```
-
+OR
+```bash
+python app.py
+```
 ## Matchmaking Strategies
 
 ### Round Robin Strategy
@@ -499,21 +506,6 @@ Calculator: Percentage-based placement scoring
 - **Plugin Loading:** Lazy loading with cache
 - **Statistics Calculation:** Incremental updates to reduce overhead
 
-## Testing
-
-Run test suite:
-
-```bash
-# Unit tests
-python -m pytest tests/
-
-# Integration tests
-python -m pytest tests/integration/
-
-# Coverage report
-python -m pytest --cov=. tests/
-```
-
 ## Contributing
 
 Pull requests are accepted using these steps:
@@ -528,10 +520,9 @@ Pull requests are accepted using these steps:
 
 - New matchmaking approaches
 - New scoring calculator implementations
-- Developing web-based user interface
 - Creating mobile application wrapper
 - Documentation enhancements
-- Increasing test coverage
+- Test coverage
 - Performance improvements
 
 ## License
