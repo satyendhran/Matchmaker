@@ -1,8 +1,3 @@
-"""
-Service layer implementing business logic.
-Orchestrates strategies, calculators, and repository.
-"""
-
 from typing import Any
 from tournament_core import (
     Player,

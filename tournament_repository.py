@@ -1,7 +1,3 @@
-"""
-SQLite implementation of the tournament repository.
-"""
-
 import sqlite3
 import json
 from typing import Any

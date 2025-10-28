@@ -1,8 +1,3 @@
-"""
-Core interfaces and base classes for the tournament system.
-Following SOLID principles for extensibility.
-"""
-
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
