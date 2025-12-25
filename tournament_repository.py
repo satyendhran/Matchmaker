@@ -1,7 +1,8 @@
-import sqlite3
 import json
+import sqlite3
 from typing import Any
-from tournament_core import ITournamentRepository, Player, Match, MatchResult
+
+from tournament_core import ITournamentRepository, Match, MatchResult, Player
 
 
 class SQLiteTournamentRepository(ITournamentRepository):

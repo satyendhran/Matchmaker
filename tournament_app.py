@@ -1,28 +1,27 @@
 import tkinter as tk
-from tkinter import messagebox, simpledialog, Toplevel, Canvas
-from tkinter import ttk
+from tkinter import Toplevel, messagebox, simpledialog, ttk
 
-from tournament_core import (
-    MatchmakingStrategyRegistry,
-    PointsCalculatorRegistry,
-    MatchResult,
-    RoundConfig,
-)
-from tournament_strategies import (
-    RoundRobinStrategy,
-    SingleEliminationStrategy,
-    SwissStrategy,
-    FreeForAllStrategy,
-)
+from plugin_loader import PluginLoader
 from tournament_calculators import (
+    PercentagePointsCalculator,
+    RankingPointsCalculator,
     StandardPointsCalculator,
     ThreePointsCalculator,
-    RankingPointsCalculator,
-    PercentagePointsCalculator,
+)
+from tournament_core import (
+    MatchmakingStrategyRegistry,
+    MatchResult,
+    PointsCalculatorRegistry,
+    RoundConfig,
 )
 from tournament_repository import SQLiteTournamentRepository
 from tournament_service import TournamentService
-from plugin_loader import PluginLoader
+from tournament_strategies import (
+    FreeForAllStrategy,
+    RoundRobinStrategy,
+    SingleEliminationStrategy,
+    SwissStrategy,
+)
 
 
 class Style:
@@ -100,11 +99,7 @@ class ModernButton(tk.Canvas):
 
         # Determine colors based on style
         if self.style == "primary":
-            bg = (
-                Style.ACCENT_BLUE_HOVER
-                if self.is_hovered
-                else Style.ACCENT_BLUE
-            )
+            bg = Style.ACCENT_BLUE_HOVER if self.is_hovered else Style.ACCENT_BLUE
             fg = "#FFFFFF"
         elif self.style == "secondary":
             bg = "#E5E5EA" if self.is_hovered else "#F2F2F7"
@@ -178,9 +173,7 @@ class CardFrame(tk.Frame):
 
     def __init__(self, parent, **kwargs):
         super().__init__(parent, bg=Style.BG_SECONDARY, relief=tk.FLAT, **kwargs)
-        self.configure(
-            highlightbackground=Style.BORDER_COLOR, highlightthickness=1
-        )
+        self.configure(highlightbackground=Style.BORDER_COLOR, highlightthickness=1)
 
 
 class TournamentApp:
@@ -272,9 +265,7 @@ class TournamentApp:
 
         # Content area with three columns
         content_frame = tk.Frame(main_container, bg=Style.BG_PRIMARY)
-        content_frame.pack(
-            fill="both", expand=True, pady=(Style.PADDING_MEDIUM, 0)
-        )
+        content_frame.pack(fill="both", expand=True, pady=(Style.PADDING_MEDIUM, 0))
 
         self._create_sidebar(content_frame)
         self._create_tournament_section(content_frame)
@@ -432,9 +423,7 @@ class TournamentApp:
 
         # Tournament list
         list_frame = tk.Frame(section, bg=Style.BG_SECONDARY)
-        list_frame.pack(
-            fill="x", padx=Style.PADDING_MEDIUM, pady=Style.PADDING_SMALL
-        )
+        list_frame.pack(fill="x", padx=Style.PADDING_MEDIUM, pady=Style.PADDING_SMALL)
 
         scrollbar = tk.Scrollbar(list_frame)
         scrollbar.pack(side="right", fill="y")
@@ -603,9 +592,7 @@ class TournamentApp:
         )
 
         strat_frame = tk.Frame(create_frame, bg=Style.BG_SECONDARY)
-        strat_frame.pack(
-            fill="x", padx=Style.PADDING_SMALL, pady=Style.PADDING_SMALL
-        )
+        strat_frame.pack(fill="x", padx=Style.PADDING_SMALL, pady=Style.PADDING_SMALL)
         tk.Label(
             strat_frame,
             text="Strategy:",
@@ -625,9 +612,7 @@ class TournamentApp:
         self.refresh_strategy_list()
 
         players_frame = tk.Frame(create_frame, bg=Style.BG_SECONDARY)
-        players_frame.pack(
-            fill="x", padx=Style.PADDING_SMALL, pady=Style.PADDING_SMALL
-        )
+        players_frame.pack(fill="x", padx=Style.PADDING_SMALL, pady=Style.PADDING_SMALL)
         tk.Label(
             players_frame,
             text="Players/Match:",
@@ -1456,9 +1441,7 @@ class TournamentApp:
         canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
 
-        canvas.pack(
-            side="left", fill="both", expand=True, padx=Style.PADDING_MEDIUM
-        )
+        canvas.pack(side="left", fill="both", expand=True, padx=Style.PADDING_MEDIUM)
         scrollbar.pack(side="right", fill="y")
 
         rank_vars = {}

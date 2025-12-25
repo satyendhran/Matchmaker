@@ -1,14 +1,15 @@
 import importlib
 import importlib.util
-import sys
 import os
+import sys
 from pathlib import Path
+
 from tournament_core import (
     IMatchmakingStrategy,
     IPointsCalculator,
+    ITournamentRepository,
     MatchmakingStrategyRegistry,
     PointsCalculatorRegistry,
-    ITournamentRepository,
 )
 
 

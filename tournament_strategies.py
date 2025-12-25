@@ -1,13 +1,14 @@
+import itertools
 from typing import Any
+
 from tournament_core import (
     IMatchmakingStrategy,
+    ITournamentRepository,
     Match,
     RoundConfig,
     generate_id,
     now_iso,
-    ITournamentRepository,
 )
-import itertools
 
 
 class RoundRobinStrategy(IMatchmakingStrategy):

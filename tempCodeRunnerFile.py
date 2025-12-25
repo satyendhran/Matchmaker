@@ -71,7 +71,7 @@ app_service = TournamentWebApp()
 @app.route("/")
 def index():
     """Main page."""
-    return render_template("main.html")
+    return render_template("index3.html")
 
 
 @app.route("/api/players", methods=["GET"])

@@ -1,13 +1,14 @@
 from typing import Any
+
 from tournament_core import (
-    Player,
-    Match,
-    MatchResult,
-    RoundConfig,
-    ITournamentRepository,
-    MatchmakingStrategyRegistry,
-    PointsCalculatorRegistry,
     IPointsCalculator,
+    ITournamentRepository,
+    Match,
+    MatchmakingStrategyRegistry,
+    MatchResult,
+    Player,
+    PointsCalculatorRegistry,
+    RoundConfig,
     generate_id,
     now_iso,
 )
@@ -171,13 +172,35 @@ class TournamentService:
 
     def _has_pending_matches(self, tournament_id: str) -> bool:
         """Check if there are any pending matches in the tournament."""
-        # This should be implemented in repository
-        return False
+        with self.repository._get_connection() as conn:
+            unfinished = conn.execute(
+                """
+                SELECT COUNT(*) AS incomplete_count
+                FROM matches m
+                JOIN rounds r ON m.round_id = r.id
+                WHERE r.tournament_id = ?
+                AND m.result IS NULL
+                """,
+                (tournament_id,),
+            ).fetchone()
+
+            return unfinished and unfinished["incomplete_count"] > 0
 
     def _get_next_round_ordinal(self, tournament_id: str) -> int:
         """Get the ordinal number for the next round."""
-        # This should query the repository for existing rounds
-        return 1
+        with self.repository._get_connection() as conn:
+            max_ordinal = conn.execute(
+                """
+                SELECT MAX(ordinal) as max_ordinal
+                FROM rounds
+                WHERE tournament_id = ?
+                """,
+                (tournament_id,),
+            ).fetchone()
+
+            if max_ordinal and max_ordinal["max_ordinal"] is not None:
+                return max_ordinal["max_ordinal"] + 1
+            return 1
 
     def _update_player_statistics(
         self, match: Match, result: MatchResult, calculator: IPointsCalculator

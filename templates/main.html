@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS | Competitive Engine</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#050505',
+                            800: '#0a0a0a',
+                            700: '#121212',
+                        },
+                        accent: {
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            glow: 'rgba(99, 102, 241, 0.15)'
+                        },
+                        glass: {
+                            surface: 'rgba(255, 255, 255, 0.03)',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            highlight: 'rgba(255, 255, 255, 0.1)',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- GLOBAL AESTHETICS --- */
+        body {
+            background-color: #050505;
+            color: #e5e5e5;
+            overflow-x: hidden;
+        }
+
+        /* Subtle Noise Overlay (Awwwards Style) */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Ambient Glow Background */
+        .ambient-glow {
+            position: fixed;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, rgba(0,0,0,0) 70%);
+            top: -100px; left: -100px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
+
+        /* --- UI COMPONENTS --- */
+        
+        /* Glassmorphism Card */
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        
+        /* Interactive Card Hover */
+        .glass-panel.interactive:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Neon Button */
+        .btn-neon {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-neon::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+        .btn-neon:hover::after { left: 100%; }
+        .btn-neon:hover {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #a1a1aa;
+        }
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Inputs */
+        .input-dark {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.2s;
+        }
+        .input-dark:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 1px #6366f1;
+            background: rgba(0,0,0,0.5);
+        }
+
+        /* Sidebar Nav */
+        .nav-link {
+            position: relative;
+            color: #71717a;
+            transition: color 0.3s ease;
+        }
+        .nav-link:hover, .nav-link.active {
+            color: white;
+        }
+        .nav-link.active::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 24px;
+            background: #6366f1;
+            border-radius: 0 4px 4px 0;
+            box-shadow: 0 0 10px #6366f1;
+        }
+
+        /* Loader */
+        .loader-orbit {
+            width: 40px; height: 40px;
+            border: 2px solid rgba(99, 102, 241, 0.1);
+            border-top: 2px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Transition Wrapper */
+        .view-transition {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+    </style>
+</head>
+<body class="font-sans text-sm antialiased selection:bg-accent-500 selection:text-white">
+
+    <div class="noise-overlay"></div>
+    <div class="ambient-glow"></div>
+
+    <div class="flex h-screen overflow-hidden relative z-10">
+        
+        <aside class="w-20 lg:w-64 flex flex-col border-r border-glass-border bg-dark-900/50 backdrop-blur-md z-20 transition-all duration-300">
+            <div class="h-20 flex items-center justify-center lg:justify-start lg:px-8 border-b border-glass-border">
+                <div class="w-10 h-10 bg-gradient-to-br from-accent-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-accent-500/20">
+                    <i class="ph-bold ph-hexagon text-xl"></i>
+                </div>
+                <span class="hidden lg:block ml-3 font-display font-bold text-xl tracking-wide text-white">NEXUS</span>
+            </div>
+
+            <nav class="flex-1 py-8 flex flex-col gap-2 px-4">
+                <div onclick="Router.navigate('dashboard')" id="nav-dashboard" class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
+                    <i class="ph-bold ph-squares-four text-xl group-hover:text-white transition-colors"></i>
+                    <span class="hidden lg:block font-medium">Overview</span>
+                </div>
+                <div onclick="Router.navigate('players')" id="nav-players" class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
+                    <i class="ph-bold ph-users text-xl group-hover:text-white transition-colors"></i>
+                    <span class="hidden lg:block font-medium">Directory</span>
+                </div>
+                <div onclick="Router.navigate('tournaments')" id="nav-tournaments" class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
+                    <i class="ph-bold ph-trophy text-xl group-hover:text-white transition-colors"></i>
+                    <span class="hidden lg:block font-medium">Tournaments</span>
+                </div>
+                
+                <div class="mt-8 mb-2 px-4 hidden lg:block">
+                    <p class="text-xs font-bold text-gray-600 uppercase tracking-widest">System</p>
+                </div>
+                <div onclick="Handlers.reloadPlugins()" class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
+                    <i class="ph-bold ph-plug text-xl group-hover:text-white transition-colors"></i>
+                    <span class="hidden lg:block font-medium">Reload Plugins</span>
+                </div>
+            </nav>
+
+            <div class="p-4 border-t border-glass-border">
+                <div class="glass-panel rounded-xl p-3 flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-r from-gray-700 to-gray-600 border border-gray-500 flex items-center justify-center">
+                        <i class="ph-bold ph-user text-white text-xs"></i>
+                    </div>
+                    <div class="hidden lg:block overflow-hidden">
+                        <p class="text-xs font-bold text-white">Admin</p>
+                        <p class="text-[10px] text-accent-400">System Online</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 flex flex-col relative bg-dark-900">
+            <header class="h-20 border-b border-glass-border flex items-center justify-between px-8 bg-dark-900/80 backdrop-blur-sm sticky top-0 z-10">
+                <div>
+                    <h1 id="page-title" class="font-display font-bold text-2xl text-white tracking-tight">Dashboard</h1>
+                    <p id="page-subtitle" class="text-xs text-gray-500 font-mono mt-0.5">NEXUS TOURNAMENT ENGINE V1.0</p>
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <div id="global-loader" class="hidden opacity-0 transition-opacity duration-300">
+                        <div class="w-5 h-5 border-2 border-accent-500 border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+
+                    <div class="flex items-center gap-3">
+                        <button class="w-10 h-10 rounded-full border border-glass-border flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                            <i class="ph-bold ph-bell"></i>
+                        </button>
+                        <button onclick="Modals.showSettings()" class="w-10 h-10 rounded-full border border-glass-border flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                            <i class="ph-bold ph-gear"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <div id="view-container" class="flex-1 overflow-y-auto p-6 lg:p-10 scroll-smooth">
+            </div>
+        </main>
+    </div>
+
+    <div id="modal-overlay" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center opacity-0 transition-opacity duration-300">
+        <div id="modal-content" class="glass-panel w-full max-w-lg rounded-2xl p-0 transform scale-95 opacity-0 transition-all duration-300 overflow-hidden shadow-2xl shadow-accent-500/10 border-gray-700">
+        </div>
+    </div>
+
+    <div id="toast-container" class="fixed bottom-8 right-8 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <script>
+        // --- API LAYER ---
+        const API = {
+            baseUrl: '',
+            async req(endpoint, method = 'GET', body = null) {
+                Loader.start();
+                try {
+                    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+                    if (body) opts.body = JSON.stringify(body);
+                    const res = await fetch(endpoint, opts);
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+                    return data;
+                } catch (e) {
+                    Toast.show(e.message, 'error');
+                    throw e;
+                } finally {
+                    Loader.stop();
+                }
+            },
+            getPlayers: () => API.req('/api/players'),
+            createPlayer: (name) => API.req('/api/players', 'POST', { name }),
+            getTournaments: () => API.req('/api/tournaments'),
+            createTournament: (name) => API.req('/api/tournaments', 'POST', { name }),
+            getTournament: (id) => API.req(`/api/tournaments/${id}`),
+            addPlayers: (id, pIds) => API.req(`/api/tournaments/${id}/players`, 'POST', { player_ids: pIds }),
+            getRounds: (id) => API.req(`/api/tournaments/${id}/rounds`),
+            createRound: (id, s, ppm) => API.req(`/api/tournaments/${id}/rounds`, 'POST', { strategy: s, players_per_match: ppm }),
+            getMatches: (rid) => API.req(`/api/rounds/${rid}/matches`),
+            recordResult: (mid, data) => API.req(`/api/matches/${mid}/result`, 'POST', data),
+            getStandings: (id) => API.req(`/api/tournaments/${id}/standings`),
+            getStrategies: () => API.req('/api/strategies'),
+            getCalculators: () => API.req('/api/calculators'),
+            setCalculator: (id, calc) => API.req(`/api/tournaments/${id}/calculator`, 'POST', { calculator: calc }),
+            reloadPlugins: () => API.req('/api/plugins/reload', 'POST'),
+        };
+
+        // --- STATE MANAGEMENT ---
+        const State = {
+            activeTournament: null,
+            strategies: [],
+            calculators: [],
+            currentCalculator: 'standard'
+        };
+
+        // --- ROUTER & ANIMATIONS ---
+        const Router = {
+            async navigate(view, params = null) {
+                // Update Sidebar
+                document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+                const nav = document.getElementById(`nav-${view}`);
+                if (nav) nav.classList.add('active');
+
+                // Container
+                const container = document.getElementById('view-container');
+                
+                // Fade Out Old
+                gsap.to(container, { opacity: 0, y: -10, duration: 0.2, onComplete: async () => {
+                    container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-gray-500 gap-4"><div class="loader-orbit"></div><p class="font-mono text-xs tracking-widest uppercase">Loading Data Stream...</p></div>`;
+                    gsap.to(container, { opacity: 1, y: 0, duration: 0.2 });
+                    
+                    try {
+                        let html = '';
+                        switch(view) {
+                            case 'dashboard': html = await Views.Dashboard(); break;
+                            case 'players': html = await Views.Players(); break;
+                            case 'tournaments': html = await Views.Tournaments(); break;
+                            case 'tournament_detail': html = await Views.TournamentDetail(params); break;
+                        }
+                        
+                        container.innerHTML = html;
+                        
+                        // Animate In New Elements
+                        gsap.fromTo(".animate-enter", 
+                            { opacity: 0, y: 20 }, 
+                            { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, ease: "power2.out" }
+                        );
+
+                    } catch (e) {
+                        console.error(e);
+                        container.innerHTML = Components.ErrorState(e.message);
+                    }
+                }});
+            }
+        };
+
+        // --- VIEWS ---
+        const Views = {
+            async Dashboard() {
+                const [players, tournaments] = await Promise.all([API.getPlayers(), API.getTournaments()]);
+                const recentTourneys = tournaments.slice(0, 3);
+                
+                document.getElementById('page-title').innerText = 'Dashboard';
+                document.getElementById('page-subtitle').innerText = `SYSTEM STATUS: OPTIMAL • ${new Date().toLocaleDateString()}`;
+
+                return `
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                        <div class="lg:col-span-2 glass-panel rounded-2xl p-8 relative overflow-hidden animate-enter group">
+                            <div class="absolute top-0 right-0 w-64 h-64 bg-accent-500/20 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-accent-500/30 transition-all duration-700"></div>
+                            <h2 class="font-display font-bold text-3xl text-white mb-2 relative z-10">Welcome back, Admin.</h2>
+                            <p class="text-gray-400 max-w-md relative z-10 mb-6">The Nexus engine is ready. You have ${tournaments.length} active tournaments and ${players.length} registered players.</p>
+                            <div class="flex gap-4 relative z-10">
+                                <button onclick="Modals.createTournament()" class="btn-neon px-6 py-2.5 rounded-lg font-medium text-sm flex items-center gap-2">
+                                    <i class="ph-bold ph-plus"></i> Create Tournament
+                                </button>
+                                <button onclick="Router.navigate('players')" class="btn-ghost px-6 py-2.5 rounded-lg font-medium text-sm">Manage Players</button>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-center items-center text-center animate-enter hover:border-accent-500/50 transition-colors">
+                            <div class="w-16 h-16 rounded-full bg-surface-500/10 border border-white/10 flex items-center justify-center mb-4 text-accent-400">
+                                <i class="ph-duotone ph-users text-3xl"></i>
+                            </div>
+                            <span class="text-4xl font-display font-bold text-white mb-1">${players.length}</span>
+                            <span class="text-xs font-mono text-gray-500 uppercase tracking-widest">Total Players</span>
+                        </div>
+                    </div>
+
+                    <div class="animate-enter">
+                        <div class="flex justify-between items-end mb-4 px-2">
+                            <h3 class="font-display font-bold text-xl text-white">Recent Tournaments</h3>
+                            <button onclick="Router.navigate('tournaments')" class="text-xs font-medium text-accent-400 hover:text-white transition-colors">View All</button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            ${recentTourneys.length ? recentTourneys.map(t => Components.TournamentCard(t)).join('') : Components.EmptyState('No tournaments yet')}
+                        </div>
+                    </div>
+                `;
+            },
+
+            async Players() {
+                const players = await API.getPlayers();
+                document.getElementById('page-title').innerText = 'Player Directory';
+                
+                return `
+                    <div class="flex flex-col h-full animate-enter">
+                <div class="flex justify-between items-center mb-6">
+                            <div class="relative w-full max-w-sm">
+                                <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                                <input type="text" placeholder="Search players..." class="input-dark w-full pl-10 pr-4 py-2.5 rounded-lg text-sm" onkeyup="Handlers.searchPlayers(this.value)">
+                            </div>
+                            <button onclick="Modals.addPlayer()" class="btn-neon px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2">
+                                <i class="ph-bold ph-user-plus"></i> <span class="hidden sm:inline">New Player</span>
+                            </button>
+                        </div>
+
+                        <div id="players-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            ${players.map(p => `
+                                <div class="glass-panel p-4 rounded-xl flex items-center gap-4 interactive group player-card" data-name="${p.name.toLowerCase()}" data-id="${p.short_id.toLowerCase()}">
+                                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-800 to-black border border-gray-700 flex items-center justify-center font-display font-bold text-lg text-gray-400 group-hover:text-accent-400 group-hover:border-accent-500/50 transition-all">
+                                        ${p.name.substring(0,2).toUpperCase()}
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="text-white font-medium truncate">${p.name}</h4>
+                                        <p class="text-xs text-gray-500 font-mono truncate">ID: ${p.short_id}</p>
+                                    </div>
+                                    <button class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-400">
+                                        <i class="ph-bold ph-trash"></i>
+                                    </button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${players.length === 0 ? Components.EmptyState('No players in database') : ''}
+                    </div>
+                `;
+            },
+
+            async Tournaments() {
+                const tournaments = await API.getTournaments();
+                document.getElementById('page-title').innerText = 'Tournaments';
+                
+                return `
+                    <div class="animate-enter">
+                         <div class="flex justify-between items-center mb-8">
+                            <p class="text-gray-400 max-w-lg">Manage competitive brackets, generate rounds, and track standings.</p>
+                            <button onclick="Modals.createTournament()" class="btn-neon px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2">
+                                <i class="ph-bold ph-plus"></i> Create New
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            ${tournaments.map(t => Components.TournamentCard(t)).join('')}
+                        </div>
+                        ${tournaments.length === 0 ? Components.EmptyState('No tournaments found. Create one to begin.') : ''}
+                    </div>
+                `;
+            },
+
+            async TournamentDetail(id) {
+                const t = await API.getTournament(id);
+                State.activeTournament = t;
+                const [rounds, standings] = await Promise.all([API.getRounds(id), API.getStandings(id)]);
+                
+                document.getElementById('page-title').innerText = t.name;
+                document.getElementById('page-subtitle').innerText = `TOURNAMENT ID: ${t.id}`;
+
+                return `
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
+                        
+                        <div class="lg:col-span-2 flex flex-col gap-6 animate-enter">
+                            <div class="glass-panel p-4 rounded-xl flex flex-wrap gap-3 items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="px-3 py-1 rounded bg-accent-500/10 border border-accent-500/20 text-accent-400 text-xs font-mono">
+                                        ${t.players.length} PLAYERS
+                                    </span>
+                                    <span class="px-3 py-1 rounded bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-mono">
+                                        ACTIVE
+                                    </span>
+                                </div>
+                                <div class="flex gap-3">
+                                    <button onclick="Modals.addPlayersToTournament('${t.id}')" class="btn-ghost px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide">
+                                        Add Players
+                                    </button>
+                                    <button onclick="Modals.createRound('${t.id}')" class="btn-neon px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide shadow-lg shadow-accent-500/20">
+                                        <i class="ph-bold ph-play mr-1"></i> Create Round
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="space-y-6">
+                                ${rounds.length === 0 ? Components.EmptyState('No matches generated yet.', 'Start by adding players and creating Round 1') : ''}
+                                ${await Promise.all(rounds.map(async (r, idx) => {
+                                    const mData = await API.getMatches(r.id);
+                                    return Components.RoundBlock(r, mData, rounds.length - idx);
+                                })).then(r => r.join(''))}
+                            </div>
+                        </div>
+
+                        <div class="glass-panel rounded-xl flex flex-col h-[calc(100vh-10rem)] sticky top-6 animate-enter delay-100">
+                            <div class="p-5 border-b border-glass-border bg-white/5">
+                                <h3 class="font-display font-bold text-lg text-white">Leaderboard</h3>
+                            </div>
+                            <div class="flex-1 overflow-y-auto p-2">
+                                <table class="w-full text-left border-collapse">
+                                    <thead class="text-xs text-gray-500 font-mono uppercase sticky top-0 bg-[#161616] z-10">
+                                        <tr>
+                                            <th class="p-3">#</th>
+                                            <th class="p-3">Player</th>
+                                            <th class="p-3 text-right">Pts</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="text-sm">
+                                        ${standings.map((s, i) => `
+                                            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                                                <td class="p-3 font-mono text-gray-500 group-hover:text-white">${s.rank}</td>
+                                                <td class="p-3 font-medium text-gray-300 group-hover:text-white">${s.name}</td>
+                                                <td class="p-3 text-right font-bold text-accent-400">${s.points}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        // --- COMPONENT LIBRARY ---
+        const Components = {
+            EmptyState(title, sub = '') {
+                return `
+                    <div class="glass-panel border-dashed border-gray-700 p-12 rounded-xl flex flex-col items-center justify-center text-center">
+                        <div class="w-16 h-16 rounded-full bg-gray-800/50 flex items-center justify-center mb-4">
+                            <i class="ph-duotone ph-ghost text-3xl text-gray-600"></i>
+                        </div>
+                        <h4 class="text-white font-medium">${title}</h4>
+                        ${sub ? `<p class="text-sm text-gray-500 mt-1">${sub}</p>` : ''}
+                    </div>
+                `;
+            },
+            ErrorState(msg) {
+                return `
+                    <div class="p-8 text-center">
+                        <i class="ph-bold ph-warning-circle text-4xl text-red-500 mb-2"></i>
+                        <p class="text-red-400 font-mono text-sm">${msg}</p>
+                    </div>
+                `;
+            },
+            TournamentCard(t) {
+                return `
+                    <div onclick="Router.navigate('tournament_detail', '${t.id}')" class="glass-panel p-6 rounded-xl relative overflow-hidden group cursor-pointer interactive h-full flex flex-col">
+                        <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-accent-500/20 to-transparent rounded-bl-full -mr-4 -mt-4 transition-all group-hover:scale-110"></div>
+                        
+                        <div class="flex justify-between items-start mb-4 relative z-10">
+                            <div class="w-10 h-10 rounded bg-white/5 border border-white/10 flex items-center justify-center text-accent-400">
+                                <i class="ph-bold ph-trophy"></i>
+                            </div>
+                            <span class="text-[10px] font-mono border border-green-500/30 text-green-400 bg-green-500/10 px-2 py-1 rounded uppercase tracking-wider">Active</span>
+                        </div>
+                        
+                        <h3 class="font-display font-bold text-xl text-white mb-1 group-hover:text-accent-400 transition-colors">${t.name}</h3>
+                        <p class="text-xs text-gray-500 font-mono mb-6">${t.short_id}</p>
+                        
+                        <div class="mt-auto pt-4 border-t border-white/5 flex justify-between items-center text-xs text-gray-400">
+                            <span>${new Date(t.created_at).toLocaleDateString()}</span>
+                            <span class="group-hover:translate-x-1 transition-transform text-white"><i class="ph-bold ph-arrow-right"></i></span>
+                        </div>
+                    </div>
+                `;
+            },
+            RoundBlock(r, data, idx) {
+                const typeLabel = r.round_type.replace('_', ' ').toUpperCase();
+                return `
+                    <div class="glass-panel rounded-xl overflow-hidden border-l-4 border-l-accent-500">
+                        <div class="px-6 py-4 bg-white/5 border-b border-white/5 flex justify-between items-center">
+                            <div>
+                                <h4 class="font-bold text-white text-sm tracking-wide">ROUND ${r.ordinal}</h4>
+                                <span class="text-[10px] text-gray-500 font-mono uppercase">${typeLabel}</span>
+                            </div>
+                            <span class="text-xs bg-black/30 px-2 py-1 rounded text-gray-400 border border-white/5">${data.matches.length} Matches</span>
+                        </div>
+                        <div class="divide-y divide-white/5">
+                            ${data.matches.map(m => Components.MatchRow(m)).join('')}
+                        </div>
+                    </div>
+                `;
+            },
+            MatchRow(m) {
+                const isComplete = m.status === 'completed' || m.status === 'bye';
+                const isDraw = m.status === 'draw';
+                
+                let badge = `<span class="text-[10px] uppercase font-bold tracking-wider text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20">Pending</span>`;
+                if (isComplete) badge = `<span class="text-[10px] uppercase font-bold tracking-wider text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded border border-gray-500/20">Done</span>`;
+                
+                const playersHtml = m.player_names.map((name, i) => {
+                    const isWinner = m.winner_names.includes(name);
+                    const isLoser = isComplete && !isWinner && !isDraw;
+                    const statusClass = isWinner ? 'text-green-400 border-green-500/30 bg-green-500/5' : 
+                                      isLoser ? 'text-gray-600 line-through opacity-50' : 'text-gray-300';
+                    
+                    return `
+                        <div class="flex-1 flex justify-between items-center px-3 py-2 rounded border border-white/5 bg-black/20 ${statusClass}">
+                            <span class="font-medium text-sm truncate">${name}</span>
+                            ${isWinner ? '<i class="ph-fill ph-crown text-green-400 text-xs"></i>' : ''}
+                        </div>
+                    `;
+                }).join('');
+
+                return `
+                    <div class="px-6 py-4 hover:bg-white/[0.02] transition-colors group">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-[10px] font-mono text-gray-600">MATCH ID: ${m.id.substring(0,8)}</span>
+                            ${badge}
+                        </div>
+                        <div class="flex flex-col sm:flex-row gap-2">
+                            ${playersHtml}
+                        </div>
+                        ${(!isComplete && !m.auto_bye) ? `
+                            <div class="mt-3 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                                <button onclick='Modals.reportMatch(${JSON.stringify(m).replace(/'/g, "&#39;")})' class="text-xs text-accent-400 hover:text-white border border-accent-500/30 hover:bg-accent-500 px-3 py-1.5 rounded transition-all">
+                                    Report Result
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+        };
+
+        // --- MODALS & FORMS ---
+        const Modals = {
+            open(title, html) {
+                const overlay = document.getElementById('modal-overlay');
+                const content = document.getElementById('modal-content');
+                
+                content.innerHTML = `
+                    <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
+                        <h3 class="font-display font-bold text-lg text-white">${title}</h3>
+                        <button onclick="Modals.close()" class="text-gray-500 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
+                    </div>
+                    <div class="p-6 bg-[#0a0a0a]">
+                        ${html}
+                    </div>
+                `;
+                
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+                
+                requestAnimationFrame(() => {
+                    overlay.classList.remove('opacity-0');
+                    content.classList.remove('opacity-0', 'scale-95');
+                    content.classList.add('scale-100');
+                });
+            },
+            close() {
+                const overlay = document.getElementById('modal-overlay');
+                const content = document.getElementById('modal-content');
+                
+                overlay.classList.add('opacity-0');
+                content.classList.add('opacity-0', 'scale-95');
+                content.classList.remove('scale-100');
+                
+                setTimeout(() => {
+                    overlay.classList.add('hidden');
+                }, 300);
+            },
+            
+            async showSettings() {
+                const calculators = await API.getCalculators();
+                const strategies = await API.getStrategies();
+                
+                this.open('System Settings', `
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-display font-bold text-white mb-3 flex items-center gap-2">
+                                <i class="ph-bold ph-calculator text-accent-400"></i>
+                                Points Calculators
+                            </h4>
+                            <p class="text-xs text-gray-500 mb-3">Available scoring systems for tournaments</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                ${calculators.map(c => `
+                                    <div class="glass-panel p-3 rounded-lg border border-white/5 hover:border-accent-500/30 transition-colors">
+                                        <span class="text-sm text-white font-mono">${c}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-white/10 pt-6">
+                            <h4 class="font-display font-bold text-white mb-3 flex items-center gap-2">
+                                <i class="ph-bold ph-strategy text-accent-400"></i>
+                                Matchmaking Strategies
+                            </h4>
+                            <p class="text-xs text-gray-500 mb-3">Available tournament formats</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                ${strategies.map(s => `
+                                    <div class="glass-panel p-3 rounded-lg border border-white/5 hover:border-accent-500/30 transition-colors">
+                                        <span class="text-sm text-white font-mono">${s}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-white/10 pt-6">
+                            <h4 class="font-display font-bold text-white mb-3 flex items-center gap-2">
+                                <i class="ph-bold ph-info text-accent-400"></i>
+                                System Information
+                            </h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Version</span>
+                                    <span class="text-white font-mono">v1.0.0</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Engine</span>
+                                    <span class="text-white font-mono">NEXUS</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-gray-500">Status</span>
+                                    <span class="text-green-400 font-mono">● Online</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-end gap-3 pt-4">
+                            <button onclick="Handlers.reloadPlugins(); Modals.close();" class="btn-ghost px-4 py-2 rounded-lg text-sm">
+                                <i class="ph-bold ph-arrows-clockwise mr-1"></i> Reload Plugins
+                            </button>
+                            <button onclick="Modals.close()" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Close</button>
+                        </div>
+                    </div>
+                `);
+            },
+            
+            createTournament() {
+                this.open('Create Tournament', `
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Tournament Name</label>
+                            <input id="inp-tname" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="e.g. Summer Cup 2024">
+                        </div>
+                        <div class="flex justify-end gap-3 pt-4">
+                            <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
+                            <button onclick="Handlers.createTournament()" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Create Tournament</button>
+                        </div>
+                    </div>
+                `);
+            },
+            addPlayer() {
+                this.open('Add Player', `
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Player Name</label>
+                            <input id="inp-pname" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="e.g. John Doe">
+                        </div>
+                        <div class="flex justify-end gap-3 pt-4">
+                            <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
+                            <button onclick="Handlers.createPlayer()" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Add Player</button>
+                        </div>
+                    </div>
+                `);
+            },
+            async createRound(tId) {
+                const strategies = await API.getStrategies();
+                const options = strategies.map(s => `<option value="${s}" class="bg-gray-900">${s.replace('_', ' ').toUpperCase()}</option>`).join('');
+                
+                this.open('Create Round', `
+                    <div class="space-y-5">
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Strategy</label>
+                            <div class="relative">
+                                <select id="inp-strat" class="input-dark w-full px-4 py-3 rounded-lg text-sm appearance-none cursor-pointer">
+                                    ${options}
+                                </select>
+                                <i class="ph-bold ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Players Per Match</label>
+                            <input id="inp-ppm" type="number" value="2" min="2" class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                        </div>
+                        <div class="flex justify-end gap-3 pt-4">
+                            <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
+                            <button onclick="Handlers.createRound('${tId}')" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Create Round</button>
+                        </div>
+                    </div>
+                `);
+            },
+            async addPlayersToTournament(tId) {
+                const all = await API.getPlayers();
+                const t = await API.getTournament(tId);
+                const currentIds = t.players.map(p => p.player_id);
+                const available = all.filter(p => !currentIds.includes(p.id));
+
+                this.open('Add Players to Tournament', `
+                    <div class="flex flex-col h-[400px]">
+                        <p class="text-xs text-gray-400 mb-4 font-mono">SELECT PLAYERS TO ADD</p>
+                        <div class="flex-1 overflow-y-auto border border-white/10 rounded-lg bg-black/20 p-2 space-y-1" id="roster-select">
+                            ${available.length === 0 ? '<div class="p-4 text-center text-gray-600 text-sm">No available players.</div>' : ''}
+                            ${available.map(p => `
+                                <label class="flex items-center p-3 hover:bg-white/5 rounded cursor-pointer transition-colors group">
+                                    <input type="checkbox" value="${p.id}" class="w-4 h-4 rounded border-gray-600 text-accent-500 focus:ring-accent-500 bg-gray-800">
+                                    <span class="ml-3 text-sm text-gray-300 group-hover:text-white">${p.name}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                        <div class="flex justify-end gap-3 pt-4">
+                            <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
+                            <button onclick="Handlers.addToRoster('${tId}')" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Add Selected</button>
+                        </div>
+                    </div>
+                `);
+            },
+            reportMatch(m) {
+                const isDuel = m.players_per_match === 2;
+                
+                if (isDuel) {
+                    this.open('Record Match Result', `
+                        <p class="text-center text-gray-400 text-xs mb-6 font-mono">SELECT WINNER</p>
+                        <div class="grid grid-cols-3 gap-4">
+                            <button onclick="Handlers.submitWin('${m.id}', '${m.player_ids[0]}')" class="group p-4 rounded-xl border border-white/10 bg-gradient-to-br from-blue-900/20 to-transparent hover:from-blue-600/40 transition-all text-center">
+                                <span class="block font-bold text-white group-hover:scale-110 transition-transform">${m.player_names[0]}</span>
+                                <span class="text-[10px] text-blue-400 mt-1">WIN</span>
+                            </button>
+                            
+                            <button onclick="Handlers.submitDraw('${m.id}')" class="group p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all text-center flex flex-col justify-center items-center">
+                                <i class="ph-bold ph-scales text-xl text-gray-400 mb-1 group-hover:text-white"></i>
+                                <span class="text-[10px] text-gray-500">DRAW</span>
+                            </button>
+
+                            <button onclick="Handlers.submitWin('${m.id}', '${m.player_ids[1]}')" class="group p-4 rounded-xl border border-white/10 bg-gradient-to-br from-blue-900/20 to-transparent hover:from-blue-600/40 transition-all text-center">
+                                <span class="block font-bold text-white group-hover:scale-110 transition-transform">${m.player_names[1]}</span>
+                                <span class="text-[10px] text-blue-400 mt-1">WIN</span>
+                            </button>
+                        </div>
+                    `);
+                } else {
+                    this.open('Record Rankings', `
+                        <p class="text-gray-400 text-xs mb-4 font-mono">ASSIGN FINAL POSITIONS (1 = 1ST PLACE)</p>
+                        <div class="space-y-3">
+                            ${m.player_names.map((n, i) => `
+                                <div class="flex items-center justify-between p-3 rounded bg-white/5 border border-white/5">
+                                    <span class="text-sm font-medium text-gray-200">${n}</span>
+                                    <input type="number" id="rank-${m.player_ids[i]}" class="input-dark w-16 text-center py-1 rounded" min="1" placeholder="#">
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button onclick="Handlers.submitFFA('${m.id}', ${JSON.stringify(m.player_ids).replace(/"/g, '&quot;')})" class="btn-neon w-full mt-6 py-3 rounded-lg font-bold text-sm">Submit Rankings</button>
+                    `);
+                }
+            }
+        };
+
+        // --- ACTION HANDLERS ---
+        const Handlers = {
+            async createPlayer() {
+                const name = document.getElementById('inp-pname').value;
+                if(!name) return Toast.show('Name required', 'error');
+                await API.createPlayer(name);
+                Modals.close();
+                Toast.show('Player registered successfully');
+                Router.navigate('players');
+            },
+            async createTournament() {
+                const name = document.getElementById('inp-tname').value;
+                if(!name) return Toast.show('Name required', 'error');
+                const t = await API.createTournament(name);
+                Modals.close();
+                Toast.show('Tournament initialized');
+                Router.navigate('tournament_detail', t.id);
+            },
+            async addToRoster(tId) {
+                const inputs = document.querySelectorAll('#roster-select input:checked');
+                const ids = Array.from(inputs).map(i => i.value);
+                if(ids.length === 0) return Toast.show('No selection', 'error');
+                await API.addPlayers(tId, ids);
+                Modals.close();
+                Router.navigate('tournament_detail', tId);
+            },
+            async createRound(tId) {
+                const strat = document.getElementById('inp-strat').value;
+                const ppm = document.getElementById('inp-ppm').value;
+                await API.createRound(tId, strat, parseInt(ppm));
+                Modals.close();
+                Router.navigate('tournament_detail', tId);
+            },
+            async submitWin(mId, pId) {
+                await API.recordResult(mId, { result_type: 'win', winner_id: pId });
+                Modals.close();
+                Router.navigate('tournament_detail', State.activeTournament.id);
+            },
+            async submitDraw(mId) {
+                await API.recordResult(mId, { result_type: 'draw' });
+                Modals.close();
+                Router.navigate('tournament_detail', State.activeTournament.id);
+            },
+            async submitFFA(mId, pIds) {
+                const rankings = {};
+                for(const pid of pIds) {
+                    const r = document.getElementById(`rank-${pid}`).value;
+                    if(!r) return Toast.show('All ranks required', 'error');
+                    rankings[pid] = parseInt(r);
+                }
+                await API.recordResult(mId, { result_type: 'rankings', rankings });
+                Modals.close();
+                Router.navigate('tournament_detail', State.activeTournament.id);
+            },
+            async reloadPlugins() {
+                await API.reloadPlugins();
+                Toast.show('System plugins reloaded');
+            },
+            searchPlayers(query) {
+                const cards = document.querySelectorAll('.player-card');
+                const q = query.toLowerCase();
+                cards.forEach(card => {
+                    const name = card.dataset.name;
+                    const id = card.dataset.id;
+                    if (name.includes(q) || id.includes(q)) {
+                        card.style.display = 'flex';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            }
+        };
+
+        // --- UTILS ---
+        const Toast = {
+            show(msg, type = 'success') {
+                const el = document.createElement('div');
+                const color = type === 'success' ? 'border-accent-500 text-accent-400' : 'border-red-500 text-red-400';
+                el.className = `glass-panel px-6 py-4 rounded-xl border-l-4 ${color} flex items-center shadow-2xl transform translate-x-full transition-transform duration-300`;
+                el.innerHTML = `<span class="font-medium text-sm">${msg}</span>`;
+                
+                document.getElementById('toast-container').appendChild(el);
+                requestAnimationFrame(() => el.classList.remove('translate-x-full'));
+                
+                setTimeout(() => {
+                    el.classList.add('translate-x-full');
+                    setTimeout(() => el.remove(), 300);
+                }, 3000);
+            }
+        };
+
+        const Loader = {
+            start() { 
+                const l = document.getElementById('global-loader');
+                l.classList.remove('hidden'); 
+                requestAnimationFrame(() => l.classList.remove('opacity-0'));
+            },
+            stop() { 
+                const l = document.getElementById('global-loader');
+                l.classList.add('opacity-0');
+                setTimeout(() => l.classList.add('hidden'), 300);
+            }
+        };
+
+        // --- INIT ---
+        window.addEventListener('DOMContentLoaded', () => {
+            Router.navigate('dashboard');
+        });
+
+    </script>
+</body>
+</html>
