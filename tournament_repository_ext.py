@@ -11,19 +11,14 @@ This module **extends** the existing repository without modifying it:
 
 Usage:
     repo = ExtendedSQLiteTournamentRepository()
-    repo.create_tournament(tid, "My Tournament")   
-    repo.save_tournament(tid, name, created_at)     
+    repo.create_tournament(tid, "My Tournament")
+    repo.save_tournament(tid, name, created_at)
 """
 
 from abc import ABC, abstractmethod
 
 from tournament_core import Player, now_iso
 from tournament_repository import SQLiteTournamentRepository
-
-
-
-
-
 
 
 class IExtendedTournamentRepository(ABC):
@@ -45,11 +40,6 @@ class IExtendedTournamentRepository(ABC):
         pass
 
 
-
-
-
-
-
 class ExtendedSQLiteTournamentRepository(
     SQLiteTournamentRepository, IExtendedTournamentRepository
 ):
@@ -67,8 +57,6 @@ class ExtendedSQLiteTournamentRepository(
 
     def __init__(self, db_path: str = "tournament.db") -> None:
         super().__init__(db_path)
-
-    
 
     def create_tournament(self, tournament_id: str, name: str) -> None:
         """Delegate to parent save_tournament with an auto-generated timestamp."""

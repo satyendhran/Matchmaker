@@ -9,25 +9,16 @@ import json
 import logging
 import os
 import sys
-import time
 from datetime import datetime, timezone
 from typing import Any
-
-
-
-
-
 
 _HAS_STRUCTLOG = False
 try:
     import structlog
+
     _HAS_STRUCTLOG = True
 except ImportError:
     pass
-
-
-
-
 
 
 def get_logger(name: str = "matchmaker", **initial_context: Any):
@@ -41,10 +32,6 @@ def get_logger(name: str = "matchmaker", **initial_context: Any):
     return _get_stdlib_logger(name, **initial_context)
 
 
-
-
-
-
 def _get_structlog_logger(name: str, **context: Any):
     """Configure and return a structlog BoundLogger."""
     import structlog
@@ -54,9 +41,11 @@ def _get_structlog_logger(name: str, **context: Any):
             structlog.contextvars.merge_contextvars,
             structlog.processors.add_log_level,
             structlog.processors.TimeStamper(fmt="iso"),
-            structlog.dev.ConsoleRenderer()
-            if os.environ.get("LOG_FORMAT", "json") != "json"
-            else structlog.processors.JSONRenderer(),
+            (
+                structlog.dev.ConsoleRenderer()
+                if os.environ.get("LOG_FORMAT", "json") != "json"
+                else structlog.processors.JSONRenderer()
+            ),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(
             logging.getLevelName(os.environ.get("LOG_LEVEL", "INFO").upper())
@@ -66,10 +55,6 @@ def _get_structlog_logger(name: str, **context: Any):
         cache_logger_on_first_use=True,
     )
     return structlog.get_logger(name, **context)
-
-
-
-
 
 
 class _JSONFormatter(logging.Formatter):
@@ -83,7 +68,7 @@ class _JSONFormatter(logging.Formatter):
             "message": record.getMessage(),
         }
         if hasattr(record, "context"):
-            entry["context"] = record.context  
+            entry["context"] = record.context
         if record.exc_info and record.exc_info[1]:
             entry["exception"] = str(record.exc_info[1])
         return json.dumps(entry)
@@ -113,9 +98,7 @@ def _get_stdlib_logger(name: str, **context: Any) -> _ContextAdapter:
             handler.setFormatter(_JSONFormatter())
         else:
             handler.setFormatter(
-                logging.Formatter(
-                    "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-                )
+                logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
             )
         logger.addHandler(handler)
 

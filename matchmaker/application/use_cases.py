@@ -9,7 +9,6 @@ from __future__ import annotations
 
 from matchmaker.domain.errors import (
     AuthorizationError,
-    InvalidMatchResultError,
     MatchNotFoundError,
     WithdrawalNotAllowedError,
 )
@@ -21,8 +20,6 @@ from matchmaker.domain.interfaces import (
 )
 from matchmaker.domain.models import (
     MatchResult,
-    MatchState,
-    PlayerStatus,
     TournamentPlayer,
 )
 from matchmaker.domain.policies import (
@@ -145,9 +142,7 @@ class WithdrawPlayerUseCase:
         # Load player tournament record
         tp = self._player_repo.get_tournament_player(tournament_id, player_id)
         if tp is None:
-            tp = TournamentPlayer(
-                player_id=player_id, tournament_id=tournament_id
-            )
+            tp = TournamentPlayer(player_id=player_id, tournament_id=tournament_id)
 
         # Check for active matches
         has_active = self._match_repo.has_active_match(tournament_id, player_id)

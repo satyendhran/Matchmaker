@@ -24,7 +24,7 @@ class RoundRobinStrategy(IMatchmakingStrategy):
         return "roundrobin"
 
     def supports_players_per_match(self, n: int) -> bool:
-        return n == 2  
+        return n == 2
 
     def create_matches(
         self,
@@ -44,12 +44,10 @@ class RoundRobinStrategy(IMatchmakingStrategy):
         players_per_match = config.players_per_match
 
         if players_per_match != 2:
-            
             return self._create_nplayer_roundrobin(
                 tournament_id, round_id, players, players_per_match
             )
 
-        
         bye_added = False
         if len(players) % 2 == 1:
             players.append("BYE")
@@ -60,14 +58,12 @@ class RoundRobinStrategy(IMatchmakingStrategy):
         matches = []
         board_counter = 1
 
-        
         for _ in range(rounds_count):
             for i in range(n // 2):
                 p1 = players[i]
                 p2 = players[n - 1 - i]
 
                 if p1 != "BYE" and p2 != "BYE":
-                    
                     if not self._pair_already_played(tournament_id, p1, p2):
                         match = Match(
                             id=generate_id(),
@@ -83,10 +79,8 @@ class RoundRobinStrategy(IMatchmakingStrategy):
                         self.repository.save_match(match)
                         board_counter += 1
 
-            
             players.insert(1, players.pop())
 
-        
         waiting = []
         if bye_added:
             scheduled_ids = set()
@@ -106,7 +100,6 @@ class RoundRobinStrategy(IMatchmakingStrategy):
         """Create round-robin for n-player games."""
         matches = []
 
-        
         for combo in itertools.combinations(players, n):
             if not self._group_already_played(tournament_id, list(combo)):
                 match = Match(
@@ -170,7 +163,7 @@ class SingleEliminationStrategy(IMatchmakingStrategy):
         return "knockout"
 
     def supports_players_per_match(self, n: int) -> bool:
-        return True  
+        return True
 
     def create_matches(
         self,
@@ -192,13 +185,10 @@ class SingleEliminationStrategy(IMatchmakingStrategy):
         matches = []
         board_counter = 1
 
-        
         while len(players) >= players_per_match:
             if players_per_match == 2:
-                
                 match_players = [players.pop(0), players.pop(-1)]
             else:
-                
                 match_players = [players.pop(0) for _ in range(players_per_match)]
 
             colors = ["white", "black"] if players_per_match == 2 else None
@@ -216,10 +206,8 @@ class SingleEliminationStrategy(IMatchmakingStrategy):
             self.repository.save_match(match)
             board_counter += 1
 
-        
         waiting_players = players
 
-        
         if len(waiting_players) == 1 and not matches:
             bye_match = Match(
                 id=generate_id(),
@@ -259,7 +247,7 @@ class SwissStrategy(IMatchmakingStrategy):
         return "swiss"
 
     def supports_players_per_match(self, n: int) -> bool:
-        return n == 2  
+        return n == 2
 
     def create_matches(
         self,
@@ -275,11 +263,9 @@ class SwissStrategy(IMatchmakingStrategy):
         if len(available_players) < 2:
             return {"matches": [], "waiting_players": available_players, "metadata": {}}
 
-        
         stats = self.repository.get_stats(tournament_id)
         player_scores = {s["player_id"]: s["points"] for s in stats}
 
-        
         sorted_players = sorted(
             available_players, key=lambda p: player_scores.get(p, 0), reverse=True
         )
@@ -288,7 +274,6 @@ class SwissStrategy(IMatchmakingStrategy):
         paired = set()
         waiting = []
 
-        
         i = 0
         while i < len(sorted_players):
             if sorted_players[i] in paired:
@@ -298,13 +283,11 @@ class SwissStrategy(IMatchmakingStrategy):
             p1 = sorted_players[i]
             p2 = None
 
-            
             for j in range(i + 1, len(sorted_players)):
                 candidate = sorted_players[j]
                 if candidate in paired:
                     continue
 
-                
                 if not self._pair_already_played(tournament_id, p1, candidate):
                     p2 = candidate
                     break
@@ -368,7 +351,7 @@ class FreeForAllStrategy(IMatchmakingStrategy):
         return "freeforall"
 
     def supports_players_per_match(self, n: int) -> bool:
-        return True  
+        return True
 
     def create_matches(
         self,

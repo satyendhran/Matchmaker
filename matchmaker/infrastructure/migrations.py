@@ -19,20 +19,17 @@ def run_migrations(db_path: str) -> None:
     conn.row_factory = sqlite3.Row
 
     # Migration tracking table
-    conn.execute(
-        """
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS _migrations (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL,
             applied_at TEXT DEFAULT (datetime('now'))
         )
-        """
-    )
+        """)
     conn.commit()
 
     applied = {
-        row["name"]
-        for row in conn.execute("SELECT name FROM _migrations").fetchall()
+        row["name"] for row in conn.execute("SELECT name FROM _migrations").fetchall()
     }
 
     migrations = [
@@ -46,9 +43,7 @@ def run_migrations(db_path: str) -> None:
             logger.info("Applying migration: %s", name)
             try:
                 func(conn)
-                conn.execute(
-                    "INSERT INTO _migrations (name) VALUES (?)", (name,)
-                )
+                conn.execute("INSERT INTO _migrations (name) VALUES (?)", (name,))
                 conn.commit()
                 logger.info("Migration applied: %s", name)
             except Exception as e:
@@ -71,8 +66,7 @@ def _migrate_001_version_column(conn: sqlite3.Connection) -> None:
 
 def _migrate_002_users_table(conn: sqlite3.Connection) -> None:
     """Create users table for authentication."""
-    conn.execute(
-        """
+    conn.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             username TEXT UNIQUE NOT NULL,
@@ -81,8 +75,7 @@ def _migrate_002_users_table(conn: sqlite3.Connection) -> None:
             player_id TEXT,
             created_at TEXT DEFAULT (datetime('now'))
         )
-        """
-    )
+        """)
 
 
 def _migrate_003_player_status(conn: sqlite3.Connection) -> None:

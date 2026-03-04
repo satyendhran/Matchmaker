@@ -1,22 +1,18 @@
-
 import argparse
 import getpass
-import sys
 import os
-
-
+import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-
 class Colors:
-    GREEN = '\033[92m'
-    RED = '\033[91m'
-    YELLOW = '\033[93m'
-    CYAN = '\033[96m'
-    BOLD = '\033[1m'
-    RESET = '\033[0m'
+    GREEN = "\033[92m"
+    RED = "\033[91m"
+    YELLOW = "\033[93m"
+    CYAN = "\033[96m"
+    BOLD = "\033[1m"
+    RESET = "\033[0m"
 
 
 def info(msg: str) -> None:
@@ -33,8 +29,6 @@ def error(msg: str) -> None:
 
 def warn(msg: str) -> None:
     print(f"{Colors.YELLOW} {msg}{Colors.RESET}")
-
-
 
 
 def validate_password(password: str) -> tuple[bool, str]:
@@ -124,18 +118,12 @@ def create_superuser(username: str, password: str, email: str = None) -> None:
         auth_service = AuthenticationService(repo)
         user_mgmt = UserManagementService(repo, auth_service)
 
-        
         existing = repo.get_admin_by_username(username)
         if existing:
             error(f"An admin with username '{username}' already exists.")
             sys.exit(1)
 
-        
-        user_mgmt.register_admin(
-            username=username,
-            password=password,
-            email=email
-        )
+        user_mgmt.register_admin(username=username, password=password, email=email)
 
     except Exception as e:
         error(f"Failed to create superuser: {e}")
@@ -150,21 +138,29 @@ def main() -> None:
 Examples:
   python create_superuser.py
   python create_superuser.py --username alice --email alice@example.com
-        """
+        """,
     )
-    parser.add_argument("--username", metavar="USERNAME",
-                        help="Admin username (prompted if not provided)")
-    parser.add_argument("--email", metavar="EMAIL",
-                        help="Admin email address (optional, prompted if not provided)")
-    parser.add_argument("--noinput", action="store_true",
-                        help="Do not prompt for input (requires --username and PASSWORD env var)")
+    parser.add_argument(
+        "--username",
+        metavar="USERNAME",
+        help="Admin username (prompted if not provided)",
+    )
+    parser.add_argument(
+        "--email",
+        metavar="EMAIL",
+        help="Admin email address (optional, prompted if not provided)",
+    )
+    parser.add_argument(
+        "--noinput",
+        action="store_true",
+        help="Do not prompt for input (requires --username and PASSWORD env var)",
+    )
 
     args = parser.parse_args()
 
     print()
 
     if args.noinput:
-        
         username = args.username
         email = args.email
         password = os.environ.get("SUPERUSER_PASSWORD")
@@ -173,7 +169,9 @@ Examples:
             error("--username is required when using --noinput")
             sys.exit(1)
         if not password:
-            error("SUPERUSER_PASSWORD environment variable is required when using --noinput")
+            error(
+                "SUPERUSER_PASSWORD environment variable is required when using --noinput"
+            )
             sys.exit(1)
 
         valid, msg = validate_password(password)
@@ -181,7 +179,6 @@ Examples:
             error(f"Invalid password: {msg}")
             sys.exit(1)
     else:
-        
         info("Enter the details for the new admin account.")
         info("Press Ctrl+C at any time to cancel.\n")
 

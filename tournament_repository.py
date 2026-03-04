@@ -23,9 +23,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
         with self._get_connection() as conn:
             cur = conn.cursor()
 
-            
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS players (
                     id TEXT PRIMARY KEY,
                     name TEXT NOT NULL,
@@ -33,8 +31,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
                     date_of_birth TEXT,
                     category TEXT
                 )
-            """
-            )
+            """)
             try:
                 cur.execute("ALTER TABLE players ADD COLUMN date_of_birth TEXT")
             except sqlite3.OperationalError as e:
@@ -46,21 +43,16 @@ class SQLiteTournamentRepository(ITournamentRepository):
                 if "duplicate column" not in str(e).lower():
                     raise
 
-            
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS tournaments (
                     id TEXT PRIMARY KEY,
                     name TEXT NOT NULL,
                     created_at TEXT,
                     default_calculator TEXT DEFAULT 'standard'
                 )
-            """
-            )
+            """)
 
-            
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS tournament_players (
                     tournament_id TEXT NOT NULL,
                     player_id TEXT NOT NULL,
@@ -68,12 +60,9 @@ class SQLiteTournamentRepository(ITournamentRepository):
                     able_to_play INTEGER DEFAULT 1,
                     PRIMARY KEY (tournament_id, player_id)
                 )
-            """
-            )
+            """)
 
-            
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS rounds (
                     id TEXT PRIMARY KEY,
                     tournament_id TEXT,
@@ -81,12 +70,9 @@ class SQLiteTournamentRepository(ITournamentRepository):
                     ordinal INTEGER,
                     created_at TEXT
                 )
-            """
-            )
+            """)
 
-            
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS matches (
                     id TEXT PRIMARY KEY,
                     round_id TEXT,
@@ -101,12 +87,9 @@ class SQLiteTournamentRepository(ITournamentRepository):
                     board_no INTEGER DEFAULT NULL,
                     colors TEXT DEFAULT NULL  -- JSON array e.g. ["white","black"]
                 )
-            """
-            )
+            """)
 
-            
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS stats (
                     player_id TEXT,
                     tournament_id TEXT,
@@ -117,20 +100,16 @@ class SQLiteTournamentRepository(ITournamentRepository):
                     points REAL DEFAULT 0,
                     PRIMARY KEY(player_id, tournament_id)
                 )
-            """
-            )
+            """)
 
-            
-            cur.execute(
-                """
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS waiting_list (
                     id TEXT PRIMARY KEY,
                     tournament_id TEXT,
                     player_id TEXT,
                     added_at TEXT
                 )
-            """
-            )
+            """)
 
             conn.commit()
 
@@ -215,13 +194,14 @@ class SQLiteTournamentRepository(ITournamentRepository):
     def save_match(self, match: Match) -> None:
         """Save a match to the database."""
         with self._get_connection() as conn:
-            
             try:
-                conn.execute("ALTER TABLE matches ADD COLUMN board_no INTEGER DEFAULT NULL")
+                conn.execute(
+                    "ALTER TABLE matches ADD COLUMN board_no INTEGER DEFAULT NULL"
+                )
                 conn.execute("ALTER TABLE matches ADD COLUMN colors TEXT DEFAULT NULL")
                 conn.commit()
             except Exception:
-                pass  
+                pass
 
             conn.execute(
                 """
@@ -427,7 +407,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
 
     def _row_to_match(self, row) -> Match:
         """Convert database row to Match object."""
-        keys = row.keys() if hasattr(row, 'keys') else []
+        keys = row.keys() if hasattr(row, "keys") else []
         return Match(
             id=row["id"],
             round_id=row["round_id"],
@@ -440,7 +420,9 @@ class SQLiteTournamentRepository(ITournamentRepository):
             auto_bye=bool(row["auto_bye"]),
             players_per_match=row["players_per_match"],
             board_no=row["board_no"] if "board_no" in keys else None,
-            colors=json.loads(row["colors"]) if (
-                "colors" in keys and row["colors"]
-            ) else None,
-        )   
+            colors=(
+                json.loads(row["colors"])
+                if ("colors" in keys and row["colors"])
+                else None
+            ),
+        )

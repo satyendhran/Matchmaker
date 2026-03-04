@@ -12,7 +12,9 @@ import os
 from matchmaker.domain.interfaces import IAuthProvider
 
 # JWT secret — in production this comes from env; for dev, generate one
-_JWT_SECRET = os.environ.get("JWT_SECRET", "nexus-tournament-engine-dev-secret-key-change-in-prod")
+_JWT_SECRET = os.environ.get(
+    "JWT_SECRET", "nexus-tournament-engine-dev-secret-key-change-in-prod"
+)
 _JWT_ALGORITHM = "HS256"
 _TOKEN_EXPIRY_HOURS = 24
 
@@ -20,7 +22,9 @@ _TOKEN_EXPIRY_HOURS = 24
 class JWTAuthProvider(IAuthProvider):
     """JWT-based auth provider."""
 
-    def __init__(self, secret: str | None = None, expiry_hours: int = _TOKEN_EXPIRY_HOURS):
+    def __init__(
+        self, secret: str | None = None, expiry_hours: int = _TOKEN_EXPIRY_HOURS
+    ):
         self._secret = secret or _JWT_SECRET
         self._expiry_hours = expiry_hours
 
@@ -41,9 +45,7 @@ class JWTAuthProvider(IAuthProvider):
         import jwt
 
         try:
-            payload = jwt.decode(
-                token, self._secret, algorithms=[_JWT_ALGORITHM]
-            )
+            payload = jwt.decode(token, self._secret, algorithms=[_JWT_ALGORITHM])
             return {
                 "user_id": payload["user_id"],
                 "username": payload["username"],

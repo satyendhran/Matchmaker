@@ -1,13 +1,21 @@
-import json
+import io
 import secrets
 from datetime import datetime
 
-import io
 import pandas as pd
-from flask import Flask, jsonify, make_response, render_template, request, send_file
+from flask import Flask, jsonify, render_template, request, send_file
 from flask_cors import CORS
-from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 
+from auth_core import UserRole, UserStatus
+from auth_middleware import create_auth_middleware
+from auth_repository import SQLiteUserRepository
+from auth_routes import init_auth_routes
+from auth_service import (
+    AuthenticationService,
+    AuthorizationService,
+    UserManagementService,
+)
 from plugin_loader import PluginLoader
 from tournament_calculators import (
     PercentagePointsCalculator,
@@ -20,7 +28,6 @@ from tournament_core import (
     MatchResult,
     PointsCalculatorRegistry,
     RoundConfig,
-    generate_id,
 )
 from tournament_repository_ext import ExtendedSQLiteTournamentRepository
 from tournament_service import TournamentService
@@ -31,35 +38,31 @@ from tournament_strategies import (
     SwissStrategy,
 )
 
-
-from auth_repository import SQLiteUserRepository
-from auth_service import AuthenticationService, AuthorizationService, UserManagementService
-from auth_middleware import create_auth_middleware
-from auth_routes import init_auth_routes
-from auth_core import UserRole, UserStatus
-
 try:
     from plugins.chess_fide_swiss import (
+        FIDE_CATEGORIES,
+        FIDE_TITLES,
         ChessFideDB,
         ChessFidePointsCalculator,
         ChessFideSwissStrategy,
         FideReports,
-        FIDE_CATEGORIES,
-        FIDE_TITLES,
         TiebreakEngine,
         TitleNormChecker,
     )
+
     FIDE_AVAILABLE = True
 except ImportError:
     FIDE_AVAILABLE = False
-    
+
     class _FideStub:
         """Placeholder when the FIDE plugin is not installed."""
+
         def __init__(self, *args, **kwargs):
             raise RuntimeError(
                 "FIDE plugin (plugins/chess_fide_swiss.py) is not installed. "
                 "Please add the plugin to use FIDE features."
             )
+
     ChessFideDB = ChessFidePointsCalculator = ChessFideSwissStrategy = _FideStub
     FideReports = TiebreakEngine = TitleNormChecker = _FideStub
     FIDE_CATEGORIES = FIDE_TITLES = {}
@@ -77,7 +80,6 @@ class TournamentWebApp:
         self.strategy_registry = MatchmakingStrategyRegistry()
         self.calculator_registry = PointsCalculatorRegistry()
 
-        
         self.user_repository = SQLiteUserRepository()
         self.auth_service = AuthenticationService(self.user_repository)
         self.authz_service = AuthorizationService(self.user_repository)
@@ -88,7 +90,6 @@ class TournamentWebApp:
             self.auth_service, self.authz_service
         )
 
-        
         if FIDE_AVAILABLE:
             self.fide_db = ChessFideDB()
             self.tiebreak_engine = TiebreakEngine(self.fide_db, self.repository)
@@ -117,8 +118,7 @@ class TournamentWebApp:
         )
 
         self.plugin_loader.discover_and_load_plugins()
-        
-        
+
         self._create_default_admin()
 
     def _register_builtin_strategies(self):
@@ -138,7 +138,7 @@ class TournamentWebApp:
         self.calculator_registry.register(PercentagePointsCalculator())
         if FIDE_AVAILABLE:
             self.calculator_registry.register(ChessFidePointsCalculator())
-    
+
     def _create_default_admin(self):
         """Create default admin account if none exists."""
         try:
@@ -148,13 +148,12 @@ class TournamentWebApp:
                 self.user_mgmt_service.register_admin(
                     username="admin",
                     password="admin123",
-                    email="admin@tournament.local"
+                    email="admin@tournament.local",
                 )
                 print(" Default admin created - Username: admin, Password: admin123")
                 print(" IMPORTANT: Change the admin password immediately!")
         except Exception as e:
             print(f"Warning: Could not create default admin: {e}")
-
 
 
 app_service = TournamentWebApp()
@@ -164,7 +163,7 @@ auth_blueprint = init_auth_routes(
     app_service.auth_service,
     app_service.authz_service,
     app_service.user_mgmt_service,
-    app_service.auth_middleware
+    app_service.auth_middleware,
 )
 app.register_blueprint(auth_blueprint)
 
@@ -179,10 +178,6 @@ def index():
 def login_page():
     """Login page."""
     return render_template("login.html")
-
-
-
-
 
 
 @app.route("/api/players", methods=["GET"])
@@ -235,7 +230,10 @@ def create_player():
         if fide_id:
             existing = app_service.fide_db.get_player_by_fide_id(fide_id)
             if existing:
-                return jsonify({"error": "FIDE ID already assigned to another player"}), 409
+                return (
+                    jsonify({"error": "FIDE ID already assigned to another player"}),
+                    409,
+                )
 
         player_id = app_service.service.create_player(name, date_of_birth=date_of_birth)
         if date_of_birth:
@@ -259,7 +257,14 @@ def create_player():
         if has_fide_fields:
             try:
                 app_service.fide_db.register_player(
-                    player_id, name, rating, date_of_birth or "", federation, title, club, fide_id
+                    player_id,
+                    name,
+                    rating,
+                    date_of_birth or "",
+                    federation,
+                    title,
+                    club,
+                    fide_id,
                 )
             except ValueError as e:
                 app_service.repository.delete_player(player_id)
@@ -291,22 +296,18 @@ def delete_player(player_id):
         return jsonify({"error": str(e)}), 500
 
 
-
-
-
-
 @app.route("/api/tournaments", methods=["GET"])
 @app_service.auth_middleware.require_auth
 def get_tournaments():
     """Get all tournaments (authenticated users)."""
     try:
         user = app_service.auth_middleware.get_current_user()
-        
+
         with app_service.repository._get_connection() as conn:
             rows = conn.execute(
                 "SELECT id, name, created_at FROM tournaments ORDER BY created_at DESC"
             ).fetchall()
-            
+
             tournaments = [
                 {
                     "id": r["id"],
@@ -316,8 +317,7 @@ def get_tournaments():
                 }
                 for r in rows
             ]
-            
-            
+
             if user.role == UserRole.PLAYER:
                 player_tournaments = []
                 for t in tournaments:
@@ -325,7 +325,7 @@ def get_tournaments():
                     if any(p["player_id"] == user.player_id for p in players):
                         player_tournaments.append(t)
                 return jsonify(player_tournaments)
-            
+
             return jsonify(tournaments)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -355,7 +355,7 @@ def get_tournament(tournament_id):
     """Get tournament details."""
     try:
         user = app_service.auth_middleware.get_current_user()
-        
+
         with app_service.repository._get_connection() as conn:
             tournament = conn.execute(
                 "SELECT * FROM tournaments WHERE id = ?", (tournament_id,)
@@ -365,13 +365,11 @@ def get_tournament(tournament_id):
                 return jsonify({"error": "Tournament not found"}), 404
 
             players = app_service.repository.get_tournament_players(tournament_id)
-            
-            
+
             if user.role == UserRole.PLAYER:
                 if not any(p["player_id"] == user.player_id for p in players):
                     return jsonify({"error": "Access denied"}), 403
 
-            
             is_fide = False
             if FIDE_AVAILABLE and app_service.fide_db is not None:
                 try:
@@ -456,10 +454,6 @@ def activate_player(tournament_id):
         return jsonify({"error": str(e)}), 500
 
 
-
-
-
-
 @app.route("/api/tournaments/<tournament_id>/rounds", methods=["POST"])
 @app_service.auth_middleware.require_permission(
     lambda user: app_service.authz_service.can_create_round(user)
@@ -469,13 +463,11 @@ def create_round(tournament_id):
     try:
         data = request.get_json()
         print(f"DEBUG: create_round received data: {data}")
-        
+
         round_type = data.get("round_type") or data.get("strategy", "roundrobin")
         players_per_match = data.get("players_per_match", 2)
         force_create = data.get("force", False)
 
-        
-        
         is_fide_tournament = False
         if FIDE_AVAILABLE and app_service.fide_db is not None:
             try:
@@ -485,21 +477,30 @@ def create_round(tournament_id):
                 pass
 
         if is_fide_tournament and round_type != "chess_fide_swiss":
-            return jsonify({
-                "error": (
-                    f"This is a FIDE Chess tournament. Only the 'chess_fide_swiss' "
-                    f"strategy is permitted. Received: '{round_type}'."
-                )
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "error": (
+                            f"This is a FIDE Chess tournament. Only the 'chess_fide_swiss' "
+                            f"strategy is permitted. Received: '{round_type}'."
+                        )
+                    }
+                ),
+                400,
+            )
 
         if not is_fide_tournament and round_type == "chess_fide_swiss":
-            return jsonify({
-                "error": (
-                    "The 'chess_fide_swiss' strategy is only available for FIDE Chess "
-                    "tournaments. Use the FIDE section to create a FIDE tournament first."
-                )
-            }), 400
-        
+            return (
+                jsonify(
+                    {
+                        "error": (
+                            "The 'chess_fide_swiss' strategy is only available for FIDE Chess "
+                            "tournaments. Use the FIDE section to create a FIDE tournament first."
+                        )
+                    }
+                ),
+                400,
+            )
 
         config = RoundConfig(
             tournament_id=tournament_id,
@@ -510,14 +511,17 @@ def create_round(tournament_id):
 
         result = app_service.service.create_round(config)
 
-        return jsonify(
-            {
-                "round_id": result["round_id"],
-                "ordinal": result["ordinal"],
-                "matches_count": len(result["matches"]),
-                "waiting_players": result.get("waiting_players", []),
-            }
-        ), 201
+        return (
+            jsonify(
+                {
+                    "round_id": result["round_id"],
+                    "ordinal": result["ordinal"],
+                    "matches_count": len(result["matches"]),
+                    "waiting_players": result.get("waiting_players", []),
+                }
+            ),
+            201,
+        )
     except ValueError as e:
         if "pending matches" in str(e).lower():
             return jsonify({"error": str(e), "code": "PENDING_MATCHES"}), 409
@@ -565,30 +569,28 @@ def get_round_matches(round_id):
     try:
         user = app_service.auth_middleware.get_current_user()
         matches = app_service.repository.list_matches_for_round(round_id)
-        
-        
+
         if user.status == UserStatus.SHADOW_BANNED:
             return jsonify([])
-        
-        
+
         if user.role == UserRole.PLAYER:
             matches = [m for m in matches if user.player_id in m.player_ids]
 
         match_data = []
         for match in matches:
-            
             players = []
             player_names = []
             for pid in match.player_ids:
                 player = app_service.repository.get_player(pid)
                 if player:
-                    players.append({"id": pid, "name": player.name, "short_id": pid[:8]})
+                    players.append(
+                        {"id": pid, "name": player.name, "short_id": pid[:8]}
+                    )
                     player_names.append(player.name)
                 else:
                     players.append({"id": pid, "name": pid[:8], "short_id": pid[:8]})
                     player_names.append(pid[:8])
 
-            
             winner_names = []
             if match.winner_ids:
                 for wid in match.winner_ids:
@@ -596,7 +598,6 @@ def get_round_matches(round_id):
                     if wp:
                         winner_names.append(wp.name)
 
-            
             if match.auto_bye:
                 status = "bye"
             elif match.result in ("draw",):
@@ -606,7 +607,6 @@ def get_round_matches(round_id):
             else:
                 status = "pending"
 
-            
             colors = match.colors or []
             white_player = None
             black_player = None
@@ -627,20 +627,17 @@ def get_round_matches(round_id):
                 {
                     "id": match.id,
                     "short_id": match.id[:8],
-                    
                     "player_ids": match.player_ids,
                     "players": players,
                     "result": match.result,
                     "winner_ids": match.winner_ids or [],
                     "auto_bye": match.auto_bye,
                     "players_per_match": match.players_per_match,
-                    
                     "board_no": match.board_no,
                     "white_player": white_player,
                     "white_id": white_id,
                     "black_player": black_player,
                     "black_id": black_id,
-                    
                     "player_names": player_names,
                     "winner_names": winner_names,
                     "status": status,
@@ -652,10 +649,6 @@ def get_round_matches(round_id):
         return jsonify({"error": str(e)}), 500
 
 
-
-
-
-
 @app.route("/api/matches/<match_id>/result", methods=["POST"])
 @app_service.auth_middleware.require_permission(
     lambda user: app_service.authz_service.can_record_result(user)
@@ -665,10 +658,8 @@ def record_match_result(match_id):
     try:
         data = request.get_json()
 
-        
         result_type = data.get("result") or data.get("result_type", "")
 
-        
         winner_ids = data.get("winner_ids") or []
         if not winner_ids:
             single_winner = data.get("winner_id")
@@ -680,7 +671,6 @@ def record_match_result(match_id):
 
         is_draw = result_type in ("draw",)
 
-        
         if result_type == "rankings" and rankings and not winner_ids:
             winner_ids = [pid for pid, rank in rankings.items() if rank == 1]
 
@@ -698,24 +688,18 @@ def record_match_result(match_id):
         return jsonify({"error": str(e)}), 500
 
 
-
-
-
-
 @app.route("/api/tournaments/<tournament_id>/standings", methods=["GET"])
 @app_service.auth_middleware.require_auth
 def get_standings(tournament_id):
     """Get tournament standings."""
     try:
         user = app_service.auth_middleware.get_current_user()
-        
-        
+
         if user.status == UserStatus.SHADOW_BANNED:
             return jsonify([])
-        
+
         standings = app_service.service.get_standings(tournament_id)
-        
-        
+
         if user.role == UserRole.PLAYER:
             players = app_service.repository.get_tournament_players(tournament_id)
             if not any(p["player_id"] == user.player_id for p in players):
@@ -726,37 +710,32 @@ def get_standings(tournament_id):
         return jsonify({"error": str(e)}), 500
 
 
-
-
-
-
 @app.route("/api/player/my-pairings/<tournament_id>", methods=["GET"])
 @app_service.auth_middleware.require_role(UserRole.PLAYER)
 def get_player_pairings(tournament_id):
     """Get player's pairings in latest round (players only)."""
     try:
         user = app_service.auth_middleware.get_current_user()
-        
-        
+
         if user.status == UserStatus.SHADOW_BANNED:
             return jsonify({"message": "No pairings found", "pairings": []}), 200
-        
-        
+
         with app_service.repository._get_connection() as conn:
-            latest_round = conn.execute("""
+            latest_round = conn.execute(
+                """
                 SELECT id, ordinal FROM rounds 
                 WHERE tournament_id = ? 
                 ORDER BY ordinal DESC LIMIT 1
-            """, (tournament_id,)).fetchone()
-            
+            """,
+                (tournament_id,),
+            ).fetchone()
+
             if not latest_round:
                 return jsonify({"message": "No rounds yet", "pairings": []}), 200
-            
-            
+
             matches = app_service.repository.list_matches_for_round(latest_round["id"])
             player_matches = [m for m in matches if user.player_id in m.player_ids]
-            
-            
+
             pairings = []
             for match in player_matches:
                 opponents = []
@@ -765,26 +744,26 @@ def get_player_pairings(tournament_id):
                         player = app_service.repository.get_player(pid)
                         if player:
                             opponents.append({"id": pid, "name": player.name})
-                
-                pairings.append({
-                    "match_id": match.id,
+
+                pairings.append(
+                    {
+                        "match_id": match.id,
+                        "round": latest_round["ordinal"],
+                        "opponents": opponents,
+                        "result": match.result,
+                        "is_bye": match.auto_bye,
+                    }
+                )
+
+            return jsonify(
+                {
+                    "tournament_id": tournament_id,
                     "round": latest_round["ordinal"],
-                    "opponents": opponents,
-                    "result": match.result,
-                    "is_bye": match.auto_bye
-                })
-            
-            return jsonify({
-                "tournament_id": tournament_id,
-                "round": latest_round["ordinal"],
-                "pairings": pairings
-            })
+                    "pairings": pairings,
+                }
+            )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-
-
 
 
 @app.route("/api/strategies", methods=["GET"])
@@ -793,7 +772,7 @@ def list_strategies():
     """List available matchmaking strategies."""
     try:
         strategies = app_service.service.list_available_strategies()
-        
+
         return jsonify(strategies)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -805,14 +784,10 @@ def list_calculators():
     """List available points calculators."""
     try:
         calculators = app_service.service.list_available_calculators()
-        
+
         return jsonify(calculators)
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
-
-
 
 
 def _validate_fide_date(value: str, field_name: str) -> str:
@@ -879,7 +854,15 @@ def _require_fide():
     """Return a 503 response if the FIDE plugin is not installed."""
     if not FIDE_AVAILABLE:
         from flask import jsonify as _jsonify
-        return _jsonify({"error": "FIDE plugin is not installed. Please add plugins/chess_fide_swiss.py."}), 503
+
+        return (
+            _jsonify(
+                {
+                    "error": "FIDE plugin is not installed. Please add plugins/chess_fide_swiss.py."
+                }
+            ),
+            503,
+        )
     return None
 
 
@@ -919,10 +902,8 @@ def fide_create_tournament():
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
-        
         tid = app_service.service.create_tournament(name)
 
-        
         app_service.fide_db.create_tournament(
             tid,
             name,
@@ -947,8 +928,7 @@ def fide_add_player(tid):
     try:
         data = request.get_json()
         player = None
-        
-        
+
         player_id = data.get("player_id", "")
         if player_id:
             player = app_service.repository.get_player(player_id)
@@ -957,7 +937,6 @@ def fide_add_player(tid):
             name = player.name
             pid = player.id
         else:
-            
             name = data.get("name", "").strip()
             if not name:
                 return jsonify({"error": "Name required"}), 400
@@ -994,10 +973,8 @@ def fide_add_player(tid):
         if category not in categories:
             category = categories[0]
 
-        
         app_service.service.add_player_to_tournament(tid, pid)
 
-        
         app_service.fide_db.register_player(
             pid, name, rating, dob, federation, title, club, fide_id
         )
@@ -1013,22 +990,12 @@ def fide_add_player(tid):
 def fide_remove_player(tid, pid):
     """Remove player from FIDE tournament."""
     try:
-        
         app_service.fide_db.remove_player(tid, pid)
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
+
         with app_service.repository._get_connection() as conn:
             conn.execute(
                 "DELETE FROM tournament_players WHERE tournament_id = ? AND player_id = ?",
-                (tid, pid)
+                (tid, pid),
             )
             conn.commit()
 
@@ -1049,16 +1016,21 @@ def fide_create_round(tid):
             tournament_id=tid,
             round_type="fide_swiss",
             players_per_match=2,
-            force_create=force_create
+            force_create=force_create,
         )
 
         result = app_service.service.create_round(config)
 
-        return jsonify({
-            "round_id": result["round_id"],
-            "ordinal": result["ordinal"],
-            "matches_count": len(result["matches"])
-        }), 201
+        return (
+            jsonify(
+                {
+                    "round_id": result["round_id"],
+                    "ordinal": result["ordinal"],
+                    "matches_count": len(result["matches"]),
+                }
+            ),
+            201,
+        )
     except ValueError as e:
         if "pending matches" in str(e).lower():
             return jsonify({"error": str(e), "code": "PENDING_MATCHES"}), 409
@@ -1067,7 +1039,9 @@ def fide_create_round(tid):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route("/api/fide/tournaments/<tid>/rounds/<int:round_num>/pairings", methods=["GET"])
+@app.route(
+    "/api/fide/tournaments/<tid>/rounds/<int:round_num>/pairings", methods=["GET"]
+)
 @app_service.auth_middleware.require_auth
 def fide_get_pairings(tid, round_num):
     """Get FIDE round pairings."""
@@ -1098,7 +1072,6 @@ def fide_record_result(mid):
         data = request.get_json()
         result_str = data.get("result", "").strip()
 
-        
         match = app_service.repository.get_match(mid)
         if not match:
             return jsonify({"error": "Match not found"}), 404
@@ -1110,7 +1083,6 @@ def fide_record_result(mid):
         winner_ids = []
         is_draw = False
 
-        
         if result_str in ("1-0", "white"):
             winner_ids = [white_id]
         elif result_str in ("0-1", "black"):
@@ -1131,10 +1103,9 @@ def fide_record_result(mid):
             mid, match_result, calculator_name="fide_standard"
         )
 
-        
         tid = match.tournament_id
         round_id = match.round_id
-        
+
         fide_rounds = app_service.fide_db.get_fide_rounds(tid)
         round_ordinal = None
         for fr in fide_rounds:
@@ -1144,14 +1115,26 @@ def fide_record_result(mid):
 
         if round_ordinal is not None:
             if is_draw:
-                app_service.fide_db.update_color_result(tid, round_ordinal, white_id, "0.5")
-                app_service.fide_db.update_color_result(tid, round_ordinal, black_id, "0.5")
+                app_service.fide_db.update_color_result(
+                    tid, round_ordinal, white_id, "0.5"
+                )
+                app_service.fide_db.update_color_result(
+                    tid, round_ordinal, black_id, "0.5"
+                )
             elif white_id in winner_ids:
-                app_service.fide_db.update_color_result(tid, round_ordinal, white_id, "1")
-                app_service.fide_db.update_color_result(tid, round_ordinal, black_id, "0")
+                app_service.fide_db.update_color_result(
+                    tid, round_ordinal, white_id, "1"
+                )
+                app_service.fide_db.update_color_result(
+                    tid, round_ordinal, black_id, "0"
+                )
             else:
-                app_service.fide_db.update_color_result(tid, round_ordinal, white_id, "0")
-                app_service.fide_db.update_color_result(tid, round_ordinal, black_id, "1")
+                app_service.fide_db.update_color_result(
+                    tid, round_ordinal, white_id, "0"
+                )
+                app_service.fide_db.update_color_result(
+                    tid, round_ordinal, black_id, "1"
+                )
 
         return jsonify({"message": "Result recorded", "result": result_str})
     except Exception as e:
@@ -1167,64 +1150,72 @@ def fide_export_tournament_excel(tid):
         if not t:
             return jsonify({"error": "Tournament not found"}), 404
 
-        round_param = request.args.get('round', 'all')
-        
-        
+        round_param = request.args.get("round", "all")
+
         def style_worksheet(ws):
             header_font = Font(bold=True, color="FFFFFF")
-            header_fill = PatternFill(start_color="363636", end_color="363636", fill_type="solid")
+            header_fill = PatternFill(
+                start_color="363636", end_color="363636", fill_type="solid"
+            )
             header_alignment = Alignment(horizontal="center", vertical="center")
-            
-            thin_border = Border(left=Side(style='thin'), 
-                                 right=Side(style='thin'), 
-                                 top=Side(style='thin'), 
-                                 bottom=Side(style='thin'))
 
-            
+            thin_border = Border(
+                left=Side(style="thin"),
+                right=Side(style="thin"),
+                top=Side(style="thin"),
+                bottom=Side(style="thin"),
+            )
+
             for cell in ws[1]:
                 cell.font = header_font
                 cell.fill = header_fill
                 cell.alignment = header_alignment
                 cell.border = thin_border
-            
-            
+
             for column_cells in ws.columns:
                 length = max(len(str(cell.value) or "") for cell in column_cells)
                 ws.column_dimensions[column_cells[0].column_letter].width = length + 4
-                
-                
+
                 for cell in column_cells:
                     cell.border = thin_border
                     if cell.row > 1:
                         cell.alignment = Alignment(horizontal="left", vertical="center")
 
         output = io.BytesIO()
-        with pd.ExcelWriter(output, engine='openpyxl') as writer:
-            
-            
-            if round_param != 'all':
+        with pd.ExcelWriter(output, engine="openpyxl") as writer:
+            if round_param != "all":
                 try:
                     r_num = int(round_param)
                     pairings = app_service.fide_reports.round_pairings(tid, r_num)
-                    
+
                     data = []
                     for p in pairings:
-                        w_info = f"{p.get('white_name', '')} ({p.get('white_rating', 0)})"
-                        b_info = f"{p.get('black_name', '')} ({p.get('black_rating', 0)})"
-                        res = f"{p.get('white_result','')} - {p.get('black_result','')}" if p.get('white_result') else "   -   "
-                        
-                        data.append({
-                            "Board": p["board"],
-                            "White": w_info,
-                            "Result": res,
-                            "Black": b_info
-                        })
-                    
+                        w_info = (
+                            f"{p.get('white_name', '')} ({p.get('white_rating', 0)})"
+                        )
+                        b_info = (
+                            f"{p.get('black_name', '')} ({p.get('black_rating', 0)})"
+                        )
+                        res = (
+                            f"{p.get('white_result', '')} - {p.get('black_result', '')}"
+                            if p.get("white_result")
+                            else "   -   "
+                        )
+
+                        data.append(
+                            {
+                                "Board": p["board"],
+                                "White": w_info,
+                                "Result": res,
+                                "Black": b_info,
+                            }
+                        )
+
                     df = pd.DataFrame(data)
                     sheet_name = f"Round {r_num} Pairings"
                     df.to_excel(writer, sheet_name=sheet_name, index=False)
                     style_worksheet(writer.sheets[sheet_name])
-                    
+
                     ws = writer.sheets[sheet_name]
                     for row in ws.iter_rows(min_row=2):
                         row[0].alignment = Alignment(horizontal="center")
@@ -1233,23 +1224,28 @@ def fide_export_tournament_excel(tid):
                 except ValueError:
                     return jsonify({"error": "Invalid round number"}), 400
 
-            
             else:
-                
                 players = app_service.fide_db.get_tournament_players(tid)
                 df_players = pd.DataFrame(players)
                 if not df_players.empty:
-                    df_players = df_players.rename(columns={
-                        "name": "Name", "rating": "Rating", "title": "Title", 
-                        "federation": "Fed", "fide_id": "FIDE ID", "starting_rank": "Rank"
-                    })
+                    df_players = df_players.rename(
+                        columns={
+                            "name": "Name",
+                            "rating": "Rating",
+                            "title": "Title",
+                            "federation": "Fed",
+                            "fide_id": "FIDE ID",
+                            "starting_rank": "Rank",
+                        }
+                    )
                     cols = ["Rank", "Name", "Title", "Rating", "Fed", "FIDE ID"]
-                    df_players = df_players[[c for c in cols if c in df_players.columns]]
-                
-                df_players.to_excel(writer, sheet_name='Players', index=False)
-                style_worksheet(writer.sheets['Players'])
+                    df_players = df_players[
+                        [c for c in cols if c in df_players.columns]
+                    ]
 
-                
+                df_players.to_excel(writer, sheet_name="Players", index=False)
+                style_worksheet(writer.sheets["Players"])
+
                 standings = app_service.fide_reports.standings(tid)
                 standing_data = []
                 for s in standings:
@@ -1262,43 +1258,50 @@ def fide_export_tournament_excel(tid):
                         "Rating": s.get("rating", 0),
                         "BH": s.get("tiebreaks", {}).get("buchholz", 0),
                         "SB": s.get("tiebreaks", {}).get("sonneborn_berger", 0),
-                        "Wins": s.get("num_wins", 0)
+                        "Wins": s.get("num_wins", 0),
                     }
                     standing_data.append(row)
-                
-                df_standings = pd.DataFrame(standing_data)
-                df_standings.to_excel(writer, sheet_name='Standings', index=False)
-                style_worksheet(writer.sheets['Standings'])
 
-                
+                df_standings = pd.DataFrame(standing_data)
+                df_standings.to_excel(writer, sheet_name="Standings", index=False)
+                style_worksheet(writer.sheets["Standings"])
+
                 rounds = app_service.fide_db.get_fide_rounds(tid)
                 all_pairings = []
                 for r in rounds:
-                    pairings = app_service.fide_reports.round_pairings(tid, r["round_ordinal"])
+                    pairings = app_service.fide_reports.round_pairings(
+                        tid, r["round_ordinal"]
+                    )
                     for p in pairings:
-                        all_pairings.append({
-                            "Round": r["round_ordinal"],
-                            "Board": p["board"],
-                            "White": p.get("white_name", ""),
-                            "Result": f"{p.get('white_result','')} - {p.get('black_result','')}" if p.get('white_result') else "?-?",
-                            "Black": p.get("black_name", ""),
-                        })
-                
+                        all_pairings.append(
+                            {
+                                "Round": r["round_ordinal"],
+                                "Board": p["board"],
+                                "White": p.get("white_name", ""),
+                                "Result": (
+                                    f"{p.get('white_result', '')} - {p.get('black_result', '')}"
+                                    if p.get("white_result")
+                                    else "?-?"
+                                ),
+                                "Black": p.get("black_name", ""),
+                            }
+                        )
+
                 df_pairings = pd.DataFrame(all_pairings)
-                df_pairings.to_excel(writer, sheet_name='All Pairings', index=False)
-                style_worksheet(writer.sheets['All Pairings'])
+                df_pairings.to_excel(writer, sheet_name="All Pairings", index=False)
+                style_worksheet(writer.sheets["All Pairings"])
 
         output.seek(0)
-        
-        safe_name = t['name'].replace(' ', '_')
-        suffix = f"Round_{round_param}" if round_param != 'all' else "Full_Export"
+
+        safe_name = t["name"].replace(" ", "_")
+        suffix = f"Round_{round_param}" if round_param != "all" else "Full_Export"
         filename = f"{safe_name}_{suffix}.xlsx"
-        
+
         return send_file(
             output,
             as_attachment=True,
             download_name=filename,
-            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         )
 
     except Exception as e:
@@ -1316,40 +1319,48 @@ def fide_check_title_norms(tid, player_id):
         return jsonify({"error": str(e)}), 500
 
 
-
-
-
-
 @app.route("/api/admin/dashboard/stats", methods=["GET"])
 @app_service.auth_middleware.require_admin
 def admin_dashboard_stats():
     """Get admin dashboard statistics."""
     try:
         with app_service.repository._get_connection() as conn:
-            
-            tournaments_count = conn.execute("SELECT COUNT(*) as cnt FROM tournaments").fetchone()["cnt"]
-            
-            
-            players_count = conn.execute("SELECT COUNT(*) as cnt FROM players").fetchone()["cnt"]
-            
-            
-            matches_count = conn.execute("SELECT COUNT(*) as cnt FROM matches").fetchone()["cnt"]
-            
-            
-            admin_count = conn.execute("SELECT COUNT(*) as cnt FROM admin_users").fetchone()["cnt"]
-            staff_count = conn.execute("SELECT COUNT(*) as cnt FROM staff_users WHERE status = 'active'").fetchone()["cnt"]
-            pending_staff = conn.execute("SELECT COUNT(*) as cnt FROM staff_users WHERE status = 'pending'").fetchone()["cnt"]
-            player_users_count = conn.execute("SELECT COUNT(*) as cnt FROM player_users").fetchone()["cnt"]
-            
-            return jsonify({
-                "tournaments": tournaments_count,
-                "players": players_count,
-                "matches": matches_count,
-                "admins": admin_count,
-                "staff": staff_count,
-                "pending_staff": pending_staff,
-                "player_accounts": player_users_count
-            })
+            tournaments_count = conn.execute(
+                "SELECT COUNT(*) as cnt FROM tournaments"
+            ).fetchone()["cnt"]
+
+            players_count = conn.execute(
+                "SELECT COUNT(*) as cnt FROM players"
+            ).fetchone()["cnt"]
+
+            matches_count = conn.execute(
+                "SELECT COUNT(*) as cnt FROM matches"
+            ).fetchone()["cnt"]
+
+            admin_count = conn.execute(
+                "SELECT COUNT(*) as cnt FROM admin_users"
+            ).fetchone()["cnt"]
+            staff_count = conn.execute(
+                "SELECT COUNT(*) as cnt FROM staff_users WHERE status = 'active'"
+            ).fetchone()["cnt"]
+            pending_staff = conn.execute(
+                "SELECT COUNT(*) as cnt FROM staff_users WHERE status = 'pending'"
+            ).fetchone()["cnt"]
+            player_users_count = conn.execute(
+                "SELECT COUNT(*) as cnt FROM player_users"
+            ).fetchone()["cnt"]
+
+            return jsonify(
+                {
+                    "tournaments": tournaments_count,
+                    "players": players_count,
+                    "matches": matches_count,
+                    "admins": admin_count,
+                    "staff": staff_count,
+                    "pending_staff": pending_staff,
+                    "player_accounts": player_users_count,
+                }
+            )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -1359,17 +1370,20 @@ def admin_dashboard_stats():
 def get_audit_log():
     """Get audit log entries (admin only)."""
     try:
-        limit = request.args.get('limit', 100, type=int)
-        
+        limit = request.args.get("limit", 100, type=int)
+
         with app_service.user_repository._get_connection() as conn:
-            rows = conn.execute("""
+            rows = conn.execute(
+                """
                 SELECT al.*, au.username as admin_username
                 FROM audit_log al
                 LEFT JOIN admin_users au ON al.admin_id = au.id
                 ORDER BY al.timestamp DESC
                 LIMIT ?
-            """, (limit,)).fetchall()
-            
+            """,
+                (limit,),
+            ).fetchall()
+
             return jsonify([dict(r) for r in rows])
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1381,28 +1395,27 @@ def list_all_users():
     """List all users (admin only)."""
     try:
         with app_service.user_repository._get_connection() as conn:
-            
-            admins = conn.execute("SELECT id, username, email, status, created_at, last_login FROM admin_users").fetchall()
+            admins = conn.execute(
+                "SELECT id, username, email, status, created_at, last_login FROM admin_users"
+            ).fetchall()
             admin_list = [{"role": "admin", **dict(r)} for r in admins]
-            
-            
-            staff = conn.execute("SELECT id, username, email, status, created_at, last_login, approved_by FROM staff_users").fetchall()
+
+            staff = conn.execute(
+                "SELECT id, username, email, status, created_at, last_login, approved_by FROM staff_users"
+            ).fetchall()
             staff_list = [{"role": "staff", **dict(r)} for r in staff]
-            
-            
-            players = conn.execute("SELECT id, player_id, name, date_of_birth, status, created_at, last_login FROM player_users").fetchall()
+
+            players = conn.execute(
+                "SELECT id, player_id, name, date_of_birth, status, created_at, last_login FROM player_users"
+            ).fetchall()
             player_list = [{"role": "player", **dict(r)} for r in players]
-            
-            return jsonify({
-                "admins": admin_list,
-                "staff": staff_list,
-                "players": player_list
-            })
+
+            return jsonify(
+                {"admins": admin_list, "staff": staff_list, "players": player_list}
+            )
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
-
-    
     app.run(debug=True, host="0.0.0.0", port=5000)

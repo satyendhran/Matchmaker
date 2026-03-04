@@ -1,6 +1,5 @@
 import gzip
 import json
-from datetime import datetime, timezone
 from typing import Any
 
 from tournament_core import (
@@ -37,18 +36,18 @@ class TournamentService:
         self.strategy_registry = strategy_registry
         self.calculator_registry = calculator_registry
         self.default_calculator = "standard"
-        
+
         self._tournament_configs: dict[str, TournamentConfig] = {}
 
     def create_player(
         self, name: str, date_of_birth: str | None = None, category: str | None = None
     ) -> str:
         """Create a new player."""
-        
+
         existing = self.repository.get_player_by_name(name)
         if existing:
             raise ValueError(f"Player '{name}' already exists")
-            
+
         player = Player(
             id=generate_id(),
             name=name,
@@ -83,19 +82,17 @@ class TournamentService:
         Returns:
             dict with round_id and matchmaking results
         """
-        
+
         strategy = self.strategy_registry.get_strategy(config.round_type)
         if not strategy:
             raise ValueError(f"Unknown strategy: {config.round_type}")
 
-        
         if not strategy.supports_players_per_match(config.players_per_match):
             raise ValueError(
                 f"Strategy '{config.round_type}' doesn't support "
                 f"{config.players_per_match}-player matches"
             )
 
-        
         tournament_players = self.repository.get_tournament_players(
             config.tournament_id
         )
@@ -108,7 +105,6 @@ class TournamentService:
         if not available_players:
             raise ValueError("No available players for this round")
 
-        
         if not config.force_create:
             policy = self._get_completion_policy(config.tournament_id)
             if policy == RoundCompletionPolicy.STRICT:
@@ -118,16 +114,13 @@ class TournamentService:
                         "Set force_create=True or change the tournament's round "
                         "completion policy to FLEXIBLE."
                     )
-            
 
-        
         round_id = generate_id()
         ordinal = self._get_next_round_ordinal(config.tournament_id)
         self.repository.save_round(
             round_id, config.tournament_id, config.round_type, ordinal, now_iso()
         )
 
-        
         result = strategy.create_matches(
             config.tournament_id, round_id, available_players, config
         )
@@ -152,19 +145,16 @@ class TournamentService:
             result: Match result with winners and rankings
             calculator_name: Name of points calculator to use (optional)
         """
-        
+
         match = self.repository.get_match(match_id)
         if not match:
             raise ValueError(f"Match not found: {match_id}")
 
-        
         round_type = self.repository.get_round_type(match.round_id)
         is_knockout = round_type == "knockout"
 
-        
         self.repository.update_match_result(match_id, result)
 
-        
         calc_name = calculator_name or self.default_calculator
         calculator = self.calculator_registry.get_calculator(calc_name)
         if not calculator:
@@ -172,10 +162,8 @@ class TournamentService:
                 self.default_calculator
             )
 
-        
         self._update_player_statistics(match, result, calculator)
 
-        
         if is_knockout and not result.is_draw:
             self._handle_knockout_elimination(match, result)
 
@@ -201,8 +189,6 @@ class TournamentService:
             raise ValueError(f"Unknown calculator: {calculator_name}")
         self.default_calculator = calculator_name
 
-    
-
     def _has_pending_matches(self, tournament_id: str) -> bool:
         """Check if there are any pending matches in the tournament."""
         try:
@@ -220,7 +206,6 @@ class TournamentService:
 
                 return bool(unfinished and unfinished["incomplete_count"] > 0)
         except AttributeError:
-            
             return False
 
     def _get_next_round_ordinal(self, tournament_id: str) -> int:
@@ -249,7 +234,6 @@ class TournamentService:
         for player_id in match.player_ids:
             points = calculator.calculate_points(player_id, match, result)
 
-            
             stats_update = {"matches_played": 1}
 
             if result.is_draw:
@@ -262,7 +246,6 @@ class TournamentService:
                 stats_update["losses"] = 1
                 stats_update["points"] = points
 
-            
             current_stats = self._get_player_stats(match.tournament_id, player_id)
             for key, value in stats_update.items():
                 current_stats[key] = current_stats.get(key, 0) + value
@@ -281,19 +264,15 @@ class TournamentService:
 
     def _handle_knockout_elimination(self, match: Match, result: MatchResult) -> None:
         """Handle player elimination in knockout matches."""
-        
+
         for player_id in match.player_ids:
             if player_id not in result.winner_ids:
-                
                 self.repository.eliminate_player(match.tournament_id, player_id)
 
-        
         for winner_id in result.winner_ids:
             self.repository.activate_player(match.tournament_id, winner_id)
 
-    def _get_completion_policy(
-        self, tournament_id: str
-    ) -> RoundCompletionPolicy:
+    def _get_completion_policy(self, tournament_id: str) -> RoundCompletionPolicy:
         """Get the round-completion policy for a tournament.
 
         Returns STRICT by default unless overridden via
@@ -303,22 +282,17 @@ class TournamentService:
         if tc:
             return tc.round_completion_policy
 
-        
         try:
-            tc_data = self.repository.get_tournament_config(tournament_id)  
+            tc_data = self.repository.get_tournament_config(tournament_id)
             if tc_data:
-                policy = RoundCompletionPolicy(tc_data.get(
-                    "round_completion_policy", "strict"
-                ))
+                policy = RoundCompletionPolicy(
+                    tc_data.get("round_completion_policy", "strict")
+                )
                 return policy
         except (AttributeError, TypeError):
             pass
 
         return RoundCompletionPolicy.STRICT
-
-    
-    
-    
 
     def set_tournament_config(self, config: TournamentConfig) -> None:
         """Set per-tournament configuration (round completion policy, etc.).
@@ -330,9 +304,9 @@ class TournamentService:
             ))
         """
         self._tournament_configs[config.tournament_id] = config
-        
+
         try:
-            self.repository.save_tournament_config(  
+            self.repository.save_tournament_config(
                 config.tournament_id,
                 {
                     "round_completion_policy": config.round_completion_policy.value,
@@ -342,20 +316,14 @@ class TournamentService:
                 },
             )
         except AttributeError:
-            pass  
+            pass
 
-    def get_tournament_config(
-        self, tournament_id: str
-    ) -> TournamentConfig:
+    def get_tournament_config(self, tournament_id: str) -> TournamentConfig:
         """Get tournament configuration."""
         tc = self._tournament_configs.get(tournament_id)
         if tc:
             return tc
         return TournamentConfig(tournament_id=tournament_id)
-
-    
-    
-    
 
     def withdraw_player(
         self,
@@ -380,10 +348,6 @@ class TournamentService:
 
         self.repository.eliminate_player(tournament_id, player_id)
 
-    
-    
-    
-
     def appeal_match_result(self, match_id: str, reason: str) -> None:
         """File an appeal for a match result."""
         match = self.repository.get_match(match_id)
@@ -393,11 +357,8 @@ class TournamentService:
             raise ValueError("Cannot appeal a match without a result")
 
         try:
-            self.repository.update_match_appeal(  
-                match_id, "pending", reason
-            )
+            self.repository.update_match_appeal(match_id, "pending", reason)
         except AttributeError:
-            
             match.appeal_status = "pending"
             match.appeal_reason = reason
 
@@ -418,18 +379,12 @@ class TournamentService:
             raise ValueError("Decision must be 'approved' or 'rejected'")
 
         try:
-            self.repository.update_match_appeal(  
-                match_id, decision, None
-            )
+            self.repository.update_match_appeal(match_id, decision, None)
         except AttributeError:
             pass
 
         if decision == "approved" and new_result:
             self.record_match_result(match_id, new_result)
-
-    
-    
-    
 
     def auto_adjudicate_round(self, round_id: str) -> list[str]:
         """Forfeit all unfinished matches past round end_time.
@@ -447,7 +402,6 @@ class TournamentService:
                     mid = row["id"]
                     match = self.repository.get_match(mid)
                     if match:
-                        
                         forfeit_result = MatchResult(
                             match_id=mid,
                             winner_ids=[],
@@ -459,10 +413,6 @@ class TournamentService:
         except AttributeError:
             pass
         return forfeited
-
-    
-    
-    
 
     def create_phased_tournament(
         self, name: str, phases: list[dict[str, Any]]
@@ -490,9 +440,9 @@ class TournamentService:
                 phase_type=phase.get("type", "unknown"),
                 qualification_count=phase.get("qualification_count", 0),
             )
-            
+
             try:
-                self.repository.save_phase(tp)  
+                self.repository.save_phase(tp)
             except AttributeError:
                 pass
 
@@ -516,27 +466,20 @@ class TournamentService:
 
         return qualified
 
-    
-    
-    
-
     def save_template(self, template: TournamentTemplate) -> None:
         """Save a reusable tournament template."""
         try:
-            self.repository.save_template(template)  
+            self.repository.save_template(template)
         except AttributeError:
-            
             if not hasattr(self, "_templates"):
                 self._templates: dict[str, TournamentTemplate] = {}
             self._templates[template.name] = template
 
-    def create_from_template(
-        self, template_name: str, tournament_name: str
-    ) -> str:
+    def create_from_template(self, template_name: str, tournament_name: str) -> str:
         """Create a tournament from a saved template."""
         template: TournamentTemplate | None = None
         try:
-            template = self.repository.get_template(template_name)  
+            template = self.repository.get_template(template_name)
         except AttributeError:
             if hasattr(self, "_templates"):
                 template = self._templates.get(template_name)
@@ -554,10 +497,6 @@ class TournamentService:
         self.set_tournament_config(tc)
         return tid
 
-    
-    
-    
-
     def archive_tournament(self, tournament_id: str) -> bytes:
         """Export full tournament state as gzip-compressed JSON."""
         data: dict[str, Any] = {
@@ -565,7 +504,8 @@ class TournamentService:
             "exported_at": now_iso(),
             "standings": self.get_standings(tournament_id),
             "players": [
-                p.__dict__ for p in self.repository.list_players()
+                p.__dict__
+                for p in self.repository.list_players()
                 if any(
                     tp["player_id"] == p.id
                     for tp in self.repository.get_tournament_players(tournament_id)
@@ -573,7 +513,6 @@ class TournamentService:
             ],
         }
 
-        
         rounds_data: list[dict] = []
         try:
             with self.repository._get_connection() as conn:
@@ -629,7 +568,7 @@ class RoundFactory:
         return RoundConfig(
             tournament_id=tournament_id,
             round_type="freeforall",
-            players_per_match=0,  
+            players_per_match=0,
         )
 
     @staticmethod

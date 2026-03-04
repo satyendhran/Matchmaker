@@ -6,14 +6,8 @@ Bye points, and Glicko-2 rating.
 """
 
 import math
-from typing import Any
 
 from tournament_core import IPointsCalculator, ITournamentRepository, Match, MatchResult
-
-
-
-
-
 
 
 class BuchholzCalculator(IPointsCalculator):
@@ -75,11 +69,6 @@ class BuchholzCalculator(IPointsCalculator):
         return {}
 
 
-
-
-
-
-
 class SonnebornBergerCalculator(IPointsCalculator):
     """Sonneborn-Berger score: sum of (score against opponent × opponent's total).
 
@@ -103,7 +92,6 @@ class SonnebornBergerCalculator(IPointsCalculator):
         opponent_ids = [pid for pid in match.player_ids if pid != player_id]
         sb_total = 0.0
 
-        
         if result.is_draw:
             earned = 0.5
         elif player_id in result.winner_ids:
@@ -128,11 +116,6 @@ class SonnebornBergerCalculator(IPointsCalculator):
         return {}
 
 
-
-
-
-
-
 class DirectEncounterCalculator(IPointsCalculator):
     """Head-to-head tiebreak: returns 1 if player beat opponent in this
     match, 0.5 for draw, 0 for loss. Sum across all encounters for full
@@ -150,11 +133,6 @@ class DirectEncounterCalculator(IPointsCalculator):
         if player_id in result.winner_ids:
             return 1.0
         return 0.0
-
-
-
-
-
 
 
 class ByeCalculator(IPointsCalculator):
@@ -177,11 +155,6 @@ class ByeCalculator(IPointsCalculator):
         return 0.0
 
 
-
-
-
-
-
 class GlickoRatingCalculator(IPointsCalculator):
     """Glicko-2 rating change calculation.
 
@@ -192,7 +165,7 @@ class GlickoRatingCalculator(IPointsCalculator):
     Reference: Mark Glickman, "Example of the Glicko-2 system"
     """
 
-    TAU = 0.5  
+    TAU = 0.5
 
     def get_calculator_name(self) -> str:
         return "glicko"
@@ -218,14 +191,14 @@ class GlickoRatingCalculator(IPointsCalculator):
         player_volatility: float,
         opponent_rating: float,
         opponent_rd: float,
-        score: float,  
+        score: float,
     ) -> tuple[float, float, float]:
         """Compute new (rating, RD, volatility) after a single game.
 
         Returns:
             (new_rating, new_rd, new_volatility)
         """
-        
+
         mu = (player_rating - 1500) / 173.7178
         phi = player_rd / 173.7178
         sigma = player_volatility
@@ -233,31 +206,21 @@ class GlickoRatingCalculator(IPointsCalculator):
         mu_j = (opponent_rating - 1500) / 173.7178
         phi_j = opponent_rd / 173.7178
 
-        
         g_phi_j = 1.0 / math.sqrt(1 + 3 * phi_j**2 / math.pi**2)
 
-        
         E = 1.0 / (1 + math.exp(-g_phi_j * (mu - mu_j)))
 
-        
         v = 1.0 / (g_phi_j**2 * E * (1 - E))
 
-        
         delta = v * g_phi_j * (score - E)
 
-        
-        new_sigma = GlickoRatingCalculator._compute_new_volatility(
-            sigma, phi, v, delta
-        )
+        new_sigma = GlickoRatingCalculator._compute_new_volatility(sigma, phi, v, delta)
 
-        
         phi_star = math.sqrt(phi**2 + new_sigma**2)
 
-        
         new_phi = 1.0 / math.sqrt(1.0 / phi_star**2 + 1.0 / v)
         new_mu = mu + new_phi**2 * g_phi_j * (score - E)
 
-        
         new_rating = 173.7178 * new_mu + 1500
         new_rd = 173.7178 * new_phi
 
@@ -276,12 +239,8 @@ class GlickoRatingCalculator(IPointsCalculator):
             ex = math.exp(x)
             d2 = delta**2
             p2 = phi**2
-            return (
-                ex * (d2 - p2 - v - ex) / (2 * (p2 + v + ex) ** 2)
-                - (x - a) / tau**2
-            )
+            return ex * (d2 - p2 - v - ex) / (2 * (p2 + v + ex) ** 2) - (x - a) / tau**2
 
-        
         A = a
         if delta**2 > phi**2 + v:
             B = math.log(delta**2 - phi**2 - v)
@@ -291,7 +250,6 @@ class GlickoRatingCalculator(IPointsCalculator):
                 k += 1
             B = a - k * tau
 
-        
         fa = f(A)
         fb = f(B)
         while abs(B - A) > epsilon:

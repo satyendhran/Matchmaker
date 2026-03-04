@@ -11,7 +11,7 @@ All chess-specific data stored in isolated 'chess_fide.db'.
 import json
 import math
 import sqlite3
-from datetime import date, datetime
+from datetime import date
 from typing import Any
 
 from tournament_core import (
@@ -24,7 +24,6 @@ from tournament_core import (
     generate_id,
     now_iso,
 )
-
 
 # ──────────────────────────────────────────────
 #  Constants
@@ -66,8 +65,7 @@ class ChessFideDB:
 
     def _init_database(self):
         with self._conn() as c:
-            c.executescript(
-                """
+            c.executescript("""
             CREATE TABLE IF NOT EXISTS fide_tournaments (
                 id TEXT PRIMARY KEY,
                 name TEXT NOT NULL,
@@ -127,8 +125,7 @@ class ChessFideDB:
                 created_at TEXT,
                 PRIMARY KEY (tournament_id, round_ordinal)
             );
-            """
-            )
+            """)
 
     # ── Tournament CRUD ──
 
@@ -531,17 +528,12 @@ class TiebreakEngine:
 
     def performance_rating(self, tid: str, player_id: str) -> float:
         """Performance rating = avg opponent rating + dp from score percentage."""
-        players = {
-            p["player_id"]: p
-            for p in self.fide_db.get_tournament_players(tid)
-        }
+        players = {p["player_id"]: p for p in self.fide_db.get_tournament_players(tid)}
         opponents = self.fide_db.get_opponents(tid, player_id)
         if not opponents:
             return 0.0
 
-        opp_ratings = [
-            players[opp]["rating"] for opp in opponents if opp in players
-        ]
+        opp_ratings = [players[opp]["rating"] for opp in opponents if opp in players]
         if not opp_ratings:
             return 0.0
 
@@ -627,7 +619,8 @@ class TitleNormChecker:
             achieved = []
             for title, threshold in TITLE_NORM_THRESHOLDS.items():
                 if perf >= threshold and (
-                    not p.get("title") or FIDE_TITLES.index(p.get("title", "")) > FIDE_TITLES.index(title)
+                    not p.get("title")
+                    or FIDE_TITLES.index(p.get("title", "")) > FIDE_TITLES.index(title)
                 ):
                     achieved.append(title)
 
@@ -688,10 +681,7 @@ class FideReports:
     def round_pairings(self, tid: str, round_ordinal: int) -> list[dict]:
         """Board-by-board pairings for a round."""
         colors = self.fide_db.get_round_colors(tid, round_ordinal)
-        players = {
-            p["player_id"]: p
-            for p in self.fide_db.get_tournament_players(tid)
-        }
+        players = {p["player_id"]: p for p in self.fide_db.get_tournament_players(tid)}
 
         # Resolve round_id for this ordinal to look up match IDs from the main DB
         fide_rounds = self.fide_db.get_fide_rounds(tid)
@@ -736,19 +726,16 @@ class FideReports:
         for brd_data in boards.values():
             wid = brd_data.get("white_id")
             bid = brd_data.get("black_id")
-            brd_data["match_id"] = match_id_lookup.get(frozenset([wid, bid])) if wid and bid else None
+            brd_data["match_id"] = (
+                match_id_lookup.get(frozenset([wid, bid])) if wid and bid else None
+            )
 
         return [boards[b] for b in sorted(boards.keys())]
 
-    def standings(
-        self, tid: str, category_filter: str | None = None
-    ) -> list[dict]:
+    def standings(self, tid: str, category_filter: str | None = None) -> list[dict]:
         """Full standings with tiebreaks and round-by-round results."""
         stats = self.repository.get_stats(tid)
-        players = {
-            p["player_id"]: p
-            for p in self.fide_db.get_tournament_players(tid)
-        }
+        players = {p["player_id"]: p for p in self.fide_db.get_tournament_players(tid)}
 
         standing_data = []
         for s in stats:
@@ -876,8 +863,7 @@ class FideReports:
             return {}
 
         players = {
-            pl["player_id"]: pl
-            for pl in self.fide_db.get_tournament_players(tid)
+            pl["player_id"]: pl for pl in self.fide_db.get_tournament_players(tid)
         }
         tp = players.get(player_id, {})
         stats_list = self.repository.get_stats(tid)
@@ -1086,9 +1072,7 @@ class ChessFideSwissStrategy(IMatchmakingStrategy):
             },
         }
 
-    def _select_bye_player(
-        self, tournament_id: str, players: list[str]
-    ) -> str:
+    def _select_bye_player(self, tournament_id: str, players: list[str]) -> str:
         """Select bye player: lowest ranked who hasn't had a bye."""
         for p in reversed(players):
             if not self.fide_db.player_had_bye(tournament_id, p):

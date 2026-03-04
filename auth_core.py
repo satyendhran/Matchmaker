@@ -7,52 +7,57 @@ Follows SOLID principles with clear separation of concerns.
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
 from enum import Enum
 
 
 class UserRole(Enum):
     """User roles with hierarchical permissions."""
+
     ADMIN = "admin"
     PLAYER = "player"
 
 
 class UserStatus(Enum):
     """User account status."""
+
     ACTIVE = "active"
     SUSPENDED = "suspended"
-    SHADOW_BANNED = "shadow_banned"  
+    SHADOW_BANNED = "shadow_banned"
 
 
 @dataclass(kw_only=True)
 class User:
     """Base user model."""
+
     id: str
     role: UserRole
     status: UserStatus
     created_at: str
-    last_login: str|None = None
+    last_login: str | None = None
 
 
 @dataclass(kw_only=True)
 class AdminUser(User):
     """Admin user with username/password authentication."""
+
     username: str
     password_hash: str
-    email: str|None = None
+    email: str | None = None
 
 
 @dataclass(kw_only=True)
 class PlayerUser(User):
     """Player user with name/DOB authentication."""
-    player_id: str  
+
+    player_id: str
     name: str
-    date_of_birth: str  
+    date_of_birth: str
 
 
 @dataclass
 class Session:
     """User session information."""
+
     session_id: str
     user_id: str
     role: UserRole
@@ -193,7 +198,13 @@ class IUserRepository(ABC):
         pass
 
     @abstractmethod
-    def log_admin_action(self, admin_id: str, action: str, target_user_id: str | None = None,
-                         details: str | None = None, ip_address: str | None = None) -> None:
+    def log_admin_action(
+        self,
+        admin_id: str,
+        action: str,
+        target_user_id: str | None = None,
+        details: str | None = None,
+        ip_address: str | None = None,
+    ) -> None:
         """Log an admin action for audit trail."""
         pass

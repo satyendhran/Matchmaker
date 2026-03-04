@@ -11,24 +11,27 @@ import os
 import re
 import secrets
 import time
-from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from functools import wraps
 from typing import Any
-from collections.abc import Callable
+
 # ---------------------------------------------------------------------------
 #  Environment helpers
 # ---------------------------------------------------------------------------
+
 
 def _load_env():
     """Load .env file into os.environ if python-dotenv is available."""
     try:
         from dotenv import load_dotenv
+
         env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
         load_dotenv(env_path)
     except ImportError:
-        pass  
+        pass
+
 
 _load_env()
 
@@ -41,6 +44,7 @@ def get_env(key: str, default: str = "") -> str:
 # ---------------------------------------------------------------------------
 #  Password Policy
 # ---------------------------------------------------------------------------
+
 
 class PasswordPolicy:
     """Enforces password strength requirements.
@@ -57,9 +61,17 @@ class PasswordPolicy:
         require_special: bool = False,
     ):
         self.min_length = min_length or int(get_env("PASSWORD_MIN_LENGTH", "8"))
-        self.require_uppercase = require_uppercase or get_env("PASSWORD_REQUIRE_UPPERCASE", "true").lower() == "true"
-        self.require_lowercase = require_lowercase or get_env("PASSWORD_REQUIRE_LOWERCASE", "true").lower() == "true"
-        self.require_digit = require_digit or get_env("PASSWORD_REQUIRE_DIGIT", "true").lower() == "true"
+        self.require_uppercase = (
+            require_uppercase
+            or get_env("PASSWORD_REQUIRE_UPPERCASE", "true").lower() == "true"
+        )
+        self.require_lowercase = (
+            require_lowercase
+            or get_env("PASSWORD_REQUIRE_LOWERCASE", "true").lower() == "true"
+        )
+        self.require_digit = (
+            require_digit or get_env("PASSWORD_REQUIRE_DIGIT", "true").lower() == "true"
+        )
         self.require_special = require_special
 
     def validate(self, password: str) -> tuple[bool, list[str]]:
@@ -150,6 +162,7 @@ class InputValidator:
 #  Rate Limiter
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class _LoginAttempt:
     count: int = 0
@@ -170,7 +183,9 @@ class RateLimiter:
         lockout_seconds: int = 0,
     ):
         self.max_attempts = max_attempts or int(get_env("MAX_LOGIN_ATTEMPTS", "5"))
-        self.lockout_seconds = lockout_seconds or int(get_env("LOGIN_LOCKOUT_SECONDS", "300"))
+        self.lockout_seconds = lockout_seconds or int(
+            get_env("LOGIN_LOCKOUT_SECONDS", "300")
+        )
         self._attempts: dict[str, _LoginAttempt] = {}
 
     def check(self, key: str) -> tuple[bool, int]:
@@ -231,6 +246,7 @@ class RateLimiter:
 #  Session Fingerprint
 # ---------------------------------------------------------------------------
 
+
 class SessionFingerprint:
     """Binds sessions to a (ip, user_agent) fingerprint to detect hijacking."""
 
@@ -250,6 +266,7 @@ class SessionFingerprint:
 # ---------------------------------------------------------------------------
 #  CSRF Protection
 # ---------------------------------------------------------------------------
+
 
 class CSRFProtection:
     """CSRF token generation and validation for Flask."""
@@ -274,15 +291,15 @@ class CSRFProtection:
 
     def flask_protect(self) -> Callable:
         """Flask decorator to enforce CSRF on POST/PUT/DELETE."""
+
         def decorator(func: Callable) -> Callable:
             @wraps(func)
             def wrapper(*args, **kwargs):
-                from flask import request, jsonify
+                from flask import jsonify, request
 
                 if request.method in ("POST", "PUT", "DELETE", "PATCH"):
-                    token = (
-                        request.headers.get("X-CSRF-Token")
-                        or request.form.get("_csrf_token")
+                    token = request.headers.get("X-CSRF-Token") or request.form.get(
+                        "_csrf_token"
                     )
                     session_id = request.cookies.get("session_id", "")
 
@@ -290,13 +307,16 @@ class CSRFProtection:
                         return jsonify({"error": "CSRF validation failed"}), 403
 
                 return func(*args, **kwargs)
+
             return wrapper
+
         return decorator
 
 
 # ---------------------------------------------------------------------------
 #  JWT Provider
 # ---------------------------------------------------------------------------
+
 
 class JWTProvider:
     """JWT token creation and validation.
@@ -315,6 +335,7 @@ class JWTProvider:
     def _check_pyjwt() -> bool:
         try:
             import jwt  # noqa: F401
+
             return True
         except ImportError:
             return False
@@ -332,6 +353,7 @@ class JWTProvider:
 
         if self._has_pyjwt:
             import jwt
+
             return jwt.encode(payload, self.secret, algorithm=self.algorithm)
 
         # Fallback: HMAC-based simple token
@@ -342,6 +364,7 @@ class JWTProvider:
         if self._has_pyjwt:
             try:
                 import jwt
+
                 payload = jwt.decode(token, self.secret, algorithms=[self.algorithm])
                 return payload
             except Exception:
@@ -353,6 +376,7 @@ class JWTProvider:
     def _simple_encode(self, payload: dict) -> str:
         """Fallback encoder using HMAC (no PyJWT dependency)."""
         import base64
+
         payload_bytes = json.dumps(payload, separators=(",", ":")).encode()
         payload_b64 = base64.urlsafe_b64encode(payload_bytes).decode().rstrip("=")
         sig = hashlib.sha256(f"{payload_b64}.{self.secret}".encode()).hexdigest()
@@ -361,12 +385,15 @@ class JWTProvider:
     def _simple_decode(self, token: str) -> dict | None:
         """Fallback decoder."""
         import base64
+
         try:
             parts = token.rsplit(".", 1)
             if len(parts) != 2:
                 return None
             payload_b64, sig = parts
-            expected_sig = hashlib.sha256(f"{payload_b64}.{self.secret}".encode()).hexdigest()
+            expected_sig = hashlib.sha256(
+                f"{payload_b64}.{self.secret}".encode()
+            ).hexdigest()
             if not secrets.compare_digest(sig, expected_sig):
                 return None
             # Pad base64
@@ -400,6 +427,7 @@ class JWTProvider:
 # ---------------------------------------------------------------------------
 #  Audit Logger (enhanced with diffs)
 # ---------------------------------------------------------------------------
+
 
 class AuditLogger:
     """Enhanced audit logger that captures before/after diffs."""

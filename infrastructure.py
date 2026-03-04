@@ -14,14 +14,11 @@ import threading
 import time
 from abc import ABC, abstractmethod
 from collections import OrderedDict
-from dataclasses import dataclass, field
-from typing import Any, Protocol
-from collections.abc import Callable,Coroutine
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
+
 from matchmaker.domain.events import DomainEvent
-
-
-
-
 
 
 @dataclass
@@ -29,8 +26,8 @@ class Page:
     """A page of results."""
 
     items: list[Any]
-    total: int  
-    page: int  
+    total: int
+    page: int
     page_size: int
     has_next: bool
     has_prev: bool
@@ -77,10 +74,6 @@ class Paginator:
         return (offset, page_size)
 
 
-
-
-
-
 class IDistributedLock(ABC):
     """Interface for distributed locking.
 
@@ -113,15 +106,15 @@ class InProcessLock(IDistributedLock):
     """
 
     def __init__(self):
-        self._locks: dict[str, float] = {}  
+        self._locks: dict[str, float] = {}
         self._mutex = threading.Lock()
 
     def acquire(self, key: str, ttl_seconds: int = 30) -> bool:
         with self._mutex:
             now = time.time()
-            
+
             if key in self._locks and self._locks[key] > now:
-                return False  
+                return False
             self._locks[key] = now + ttl_seconds
             return True
 
@@ -134,13 +127,9 @@ class InProcessLock(IDistributedLock):
             expiry = self._locks.get(key, 0)
             if expiry > time.time():
                 return True
-            
+
             self._locks.pop(key, None)
             return False
-
-
-
-
 
 
 class ICache(ABC):
@@ -197,7 +186,7 @@ class InMemoryCache(ICache):
             if time.time() > entry.expires_at:
                 self._store.pop(key, None)
                 return None
-            
+
             self._store.move_to_end(key)
             return entry.value
 
@@ -207,7 +196,7 @@ class InMemoryCache(ICache):
                 value=value, expires_at=time.time() + ttl_seconds
             )
             self._store.move_to_end(key)
-            
+
             while len(self._store) > self._max_size:
                 self._store.popitem(last=False)
 
@@ -226,10 +215,6 @@ def cache_key(*parts: Any) -> str:
     return hashlib.sha256(raw.encode()).hexdigest()[:16]
 
 
-
-
-
-
 class IAsyncEventDispatcher(ABC):
     """Async-capable event dispatcher interface.
 
@@ -244,12 +229,10 @@ class IAsyncEventDispatcher(ABC):
         self,
         event_type: type[DomainEvent],
         handler: Callable[[DomainEvent], Any],
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @abstractmethod
-    def subscribe_all(self, handler: Callable[[DomainEvent], Any]) -> None:
-        ...
+    def subscribe_all(self, handler: Callable[[DomainEvent], Any]) -> None: ...
 
     @abstractmethod
     def dispatch(self, event: DomainEvent) -> None:
@@ -288,14 +271,12 @@ class EnhancedEventDispatcher(IAsyncEventDispatcher):
         for handler in handlers:
             try:
                 result = handler(event)
-                
+
                 if asyncio.iscoroutine(result):
                     try:
                         loop = asyncio.get_running_loop()
                         loop.create_task(result)
                     except RuntimeError:
-                        
                         asyncio.run(result)
             except Exception:
-                
                 pass

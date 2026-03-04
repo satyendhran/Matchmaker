@@ -1,7 +1,7 @@
 import datetime
 import uuid
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
@@ -16,7 +16,7 @@ class Player:
     date_of_birth: str | None = None
     category: str | None = None
     email: str | None = None
-    
+
     rating: float = 1500.0
     rating_deviation: float = 350.0
     rating_volatility: float = 0.06
@@ -29,19 +29,17 @@ class Match:
     id: str
     round_id: str
     tournament_id: str
-    player_ids: list[str]  
+    player_ids: list[str]
     scheduled_at: str
     result: str | None = None
-    winner_ids: list[str] | None = None  
-    rankings: dict[str, int] | None = (
-        None  
-    )
+    winner_ids: list[str] | None = None
+    rankings: dict[str, int] | None = None
     auto_bye: bool = False
-    players_per_match: int = 2  
-    board_no: int | None = None  
-    colors: list[str] | None = None  
-    
-    appeal_status: str | None = None  
+    players_per_match: int = 2
+    board_no: int | None = None
+    colors: list[str] | None = None
+
+    appeal_status: str | None = None
     appeal_reason: str | None = None
     forfeit_player_id: str | None = None
 
@@ -52,7 +50,7 @@ class MatchResult:
 
     match_id: str
     winner_ids: list[str]
-    rankings: dict[str, int]  
+    rankings: dict[str, int]
     is_draw: bool = False
 
 
@@ -65,13 +63,8 @@ class RoundConfig:
     players_per_match: int = 2
     force_create: bool = False
     additional_params: dict[str, Any] | None = None
-    start_time: str | None = None  
-    end_time: str | None = None  
-
-
-
-
-
+    start_time: str | None = None
+    end_time: str | None = None
 
 
 class RoundCompletionPolicy(str, Enum):
@@ -118,8 +111,8 @@ class TournamentPhase:
 
     parent_tournament_id: str
     child_tournament_id: str
-    phase_type: str  
-    qualification_count: int = 0  
+    phase_type: str
+    qualification_count: int = 0
 
 
 class IMatchmakingStrategy(ABC):

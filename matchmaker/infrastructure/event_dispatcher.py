@@ -55,9 +55,7 @@ class InProcessEventDispatcher(IEventDispatcher):
                 try:
                     handler(event)
                 except Exception as e:
-                    logger.error(
-                        "Global event handler error: %s", e, exc_info=True
-                    )
+                    logger.error("Global event handler error: %s", e, exc_info=True)
 
 
 def audit_log_handler(event: DomainEvent) -> None:

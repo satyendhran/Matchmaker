@@ -10,14 +10,9 @@ from __future__ import annotations
 import uuid
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
 
-from matchmaker.domain.errors import (
-    InvalidMatchResultError,
-    MatchAlreadyCompletedError,
-)
+from matchmaker.domain.errors import InvalidMatchResultError, MatchAlreadyCompletedError
 from matchmaker.domain.events import DomainEvent, MatchResultRecorded
-
 
 # ──────────────────────────────────────────────
 #  Enums / State Machine
@@ -151,9 +146,7 @@ class MatchResult:
 
         # Draw cannot have winners
         if is_draw and winner_ids:
-            raise InvalidMatchResultError(
-                "A draw cannot have winner IDs"
-            )
+            raise InvalidMatchResultError("A draw cannot have winner IDs")
 
         # Non-draw must have winners
         if not is_draw and not winner_ids:
@@ -195,9 +188,7 @@ class MatchAggregate:
     scheduled_at: str = ""
     players_per_match: int = 2
     version: int = 0  # Optimistic locking
-    _pending_events: list[DomainEvent] = field(
-        default_factory=list, repr=False
-    )
+    _pending_events: list[DomainEvent] = field(default_factory=list, repr=False)
 
     def record_result(self, result: MatchResult) -> None:
         """Record a match result with full invariant enforcement.
@@ -255,9 +246,7 @@ class MatchAggregate:
         rankings[forfeiting_player_id] = len(self.player_ids)
 
         self.state = MatchState.FORFEITED
-        self.result = MatchResult(
-            winner_ids=winners, is_draw=False, rankings=rankings
-        )
+        self.result = MatchResult(winner_ids=winners, is_draw=False, rankings=rankings)
 
     def collect_events(self) -> list[DomainEvent]:
         """Drain pending events (call after successful save)."""
@@ -290,9 +279,7 @@ class TournamentPlayer:
         from matchmaker.domain.errors import WithdrawalNotAllowedError
 
         if not self.is_active:
-            raise WithdrawalNotAllowedError(
-                f"Player is already {self.status.value}"
-            )
+            raise WithdrawalNotAllowedError(f"Player is already {self.status.value}")
 
         if self.rounds_played < min_rounds:
             raise WithdrawalNotAllowedError(

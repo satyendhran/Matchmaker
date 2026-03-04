@@ -13,58 +13,48 @@ import pytest
 # Ensure project root is on sys.path so imports work
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from infrastructure import (
+    EnhancedEventDispatcher,
+    InMemoryCache,
+    InProcessLock,
+    Paginator,
+)
+from security import (
+    CSRFProtection,
+    InputValidator,
+    JWTProvider,
+    PasswordPolicy,
+    RateLimiter,
+)
+from tournament_calculators import StandardPointsCalculator
+from tournament_calculators_ext import (
+    BuchholzCalculator,
+    ByeCalculator,
+    DirectEncounterCalculator,
+    GlickoRatingCalculator,
+    SonnebornBergerCalculator,
+)
 from tournament_core import (
-    Match,
     MatchmakingStrategyRegistry,
-    MatchResult,
-    Player,
     PointsCalculatorRegistry,
-    RoundConfig,
-    TournamentConfig,
-    RoundCompletionPolicy,
-    generate_id,
-    now_iso,
 )
 from tournament_repository import SQLiteTournamentRepository
 from tournament_service import TournamentService
 from tournament_strategies import (
+    FreeForAllStrategy,
     RoundRobinStrategy,
     SingleEliminationStrategy,
     SwissStrategy,
-    FreeForAllStrategy,
 )
-from tournament_calculators import StandardPointsCalculator
 from tournament_strategies_ext import (
-    DoubleEliminationStrategy,
     ColorBalancedSwissStrategy,
+    DoubleEliminationStrategy,
 )
-from tournament_calculators_ext import (
-    BuchholzCalculator,
-    SonnebornBergerCalculator,
-    DirectEncounterCalculator,
-    ByeCalculator,
-    GlickoRatingCalculator,
-)
-from security import (
-    PasswordPolicy,
-    InputValidator,
-    RateLimiter,
-    SessionFingerprint,
-    CSRFProtection,
-    JWTProvider,
-    AuditLogger,
-)
-from infrastructure import (
-    Paginator,
-    InProcessLock,
-    InMemoryCache,
-    EnhancedEventDispatcher,
-)
-
 
 # ──────────────────────────────────────────────────────────────────────
 #  DB Fixtures
 # ──────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def tmp_db_path():
@@ -87,6 +77,7 @@ def repository(tmp_db_path):
 # ──────────────────────────────────────────────────────────────────────
 #  Registry Fixtures
 # ──────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def strategy_registry(repository):
@@ -124,6 +115,7 @@ def calculator_registry(repository):
 #  Service Fixtures
 # ──────────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture
 def service(repository, strategy_registry, calculator_registry):
     """Fully initialised TournamentService."""
@@ -133,6 +125,7 @@ def service(repository, strategy_registry, calculator_registry):
 # ──────────────────────────────────────────────────────────────────────
 #  Infrastructure Fixtures
 # ──────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def paginator():
@@ -157,6 +150,7 @@ def event_dispatcher():
 # ──────────────────────────────────────────────────────────────────────
 #  Security Fixtures
 # ──────────────────────────────────────────────────────────────────────
+
 
 @pytest.fixture
 def password_policy():

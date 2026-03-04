@@ -5,8 +5,8 @@ Provides decorators for protecting Flask routes.
 Supports both session-based and JWT Bearer token authentication.
 """
 
-from functools import wraps
 from collections.abc import Callable
+from functools import wraps
 
 from flask import g, jsonify, request
 
@@ -49,10 +49,8 @@ class AuthMiddleware:
         if auth_header.startswith("Bearer "):
             token = auth_header[7:]
 
-            
             claims = self.jwt_provider.validate_token(token)
             if claims:
-                
                 return Session(
                     session_id=token[:32],
                     user_id=claims.get("sub", ""),
@@ -62,10 +60,8 @@ class AuthMiddleware:
                     ip_address=request.remote_addr,
                 )
 
-            
             return self.auth_service.validate_session(token)
 
-        
         session_id = request.cookies.get("session_id")
         if session_id:
             return self.auth_service.validate_session(session_id)
@@ -81,6 +77,7 @@ class AuthMiddleware:
 
     def require_auth(self, func: Callable) -> Callable:
         """Decorator to require authentication."""
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             session = self.get_current_session()
@@ -88,10 +85,12 @@ class AuthMiddleware:
                 return jsonify({"error": "Authentication required"}), 401
             g.current_session = session
             return func(*args, **kwargs)
+
         return wrapper
 
     def require_role(self, *allowed_roles: UserRole) -> Callable:
         """Decorator to require specific roles."""
+
         def decorator(func: Callable) -> Callable:
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -109,7 +108,9 @@ class AuthMiddleware:
                 g.current_session = session
                 g.current_user = user
                 return func(*args, **kwargs)
+
             return wrapper
+
         return decorator
 
     def require_admin(self, func: Callable) -> Callable:
@@ -122,6 +123,7 @@ class AuthMiddleware:
 
     def require_permission(self, permission_check: Callable[[User], bool]) -> Callable:
         """Decorator to check custom permission."""
+
         def decorator(func: Callable) -> Callable:
             @wraps(func)
             def wrapper(*args, **kwargs):
@@ -134,22 +136,27 @@ class AuthMiddleware:
 
                 g.current_user = user
                 return func(*args, **kwargs)
+
             return wrapper
+
         return decorator
 
     def require_csrf(self, func: Callable) -> Callable:
         """Decorator to enforce CSRF token on mutating requests."""
+
         @wraps(func)
         def wrapper(*args, **kwargs):
             if request.method in ("POST", "PUT", "DELETE", "PATCH"):
-                token = (
-                    request.headers.get("X-CSRF-Token")
-                    or request.form.get("_csrf_token")
+                token = request.headers.get("X-CSRF-Token") or request.form.get(
+                    "_csrf_token"
                 )
                 session_id = request.cookies.get("session_id", "")
-                if not token or not self.csrf_protection.validate_token(token, session_id):
+                if not token or not self.csrf_protection.validate_token(
+                    token, session_id
+                ):
                     return jsonify({"error": "CSRF validation failed"}), 403
             return func(*args, **kwargs)
+
         return wrapper
 
 

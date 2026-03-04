@@ -5,7 +5,7 @@ New strategies: Double Elimination, Color-Balanced Swiss.
 """
 
 import random
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from tournament_core import (
@@ -18,18 +18,13 @@ from tournament_core import (
 )
 
 
-
-
-
-
-
 @dataclass
 class _BracketState:
     """Internal tracker for a single player's bracket position."""
 
     player_id: str
-    losses: int = 0  
-    bracket: str = "winners"  
+    losses: int = 0
+    bracket: str = "winners"
 
 
 class DoubleEliminationStrategy(IMatchmakingStrategy):
@@ -64,34 +59,22 @@ class DoubleEliminationStrategy(IMatchmakingStrategy):
         params = config.additional_params or {}
         bracket_state: dict[str, dict] = params.get("bracket_state", {})
 
-        
         if not bracket_state:
             for p in available_players:
                 pid = p["player_id"]
                 bracket_state[pid] = {"losses": 0, "bracket": "winners"}
 
-        winners = [
-            pid for pid, s in bracket_state.items() if s["bracket"] == "winners"
-        ]
-        losers = [
-            pid for pid, s in bracket_state.items() if s["bracket"] == "losers"
-        ]
+        winners = [pid for pid, s in bracket_state.items() if s["bracket"] == "winners"]
+        losers = [pid for pid, s in bracket_state.items() if s["bracket"] == "losers"]
 
         matches: list[Match] = []
 
-        
         random.shuffle(winners)
-        matches.extend(
-            self._pair_bracket(winners, tournament_id, round_id, "winners")
-        )
+        matches.extend(self._pair_bracket(winners, tournament_id, round_id, "winners"))
 
-        
         random.shuffle(losers)
-        matches.extend(
-            self._pair_bracket(losers, tournament_id, round_id, "losers")
-        )
+        matches.extend(self._pair_bracket(losers, tournament_id, round_id, "losers"))
 
-        
         if len(winners) == 1 and len(losers) == 1:
             gf = Match(
                 id=generate_id(),
@@ -112,8 +95,6 @@ class DoubleEliminationStrategy(IMatchmakingStrategy):
             "bracket_state": bracket_state,
         }
 
-    
-
     @staticmethod
     def _pair_bracket(
         player_ids: list[str], tournament_id: str, round_id: str, bracket: str
@@ -133,7 +114,6 @@ class DoubleEliminationStrategy(IMatchmakingStrategy):
             matches.append(m)
             i += 2
 
-        
         if i < len(player_ids):
             bye = Match(
                 id=generate_id(),
@@ -172,14 +152,11 @@ class DoubleEliminationStrategy(IMatchmakingStrategy):
         return bracket_state
 
     @staticmethod
-    def _get_active_players(repository: ITournamentRepository, tournament_id: str) -> list[dict]:
+    def _get_active_players(
+        repository: ITournamentRepository, tournament_id: str
+    ) -> list[dict]:
         players = repository.get_tournament_players(tournament_id)
         return [p for p in players if p.get("able_to_play", 1)]
-
-
-
-
-
 
 
 class ColorBalancedSwissStrategy(IMatchmakingStrategy):
@@ -214,10 +191,8 @@ class ColorBalancedSwissStrategy(IMatchmakingStrategy):
         params = config.additional_params or {}
         color_history: dict[str, list[str]] = params.get("color_history", {})
 
-        
         stats = params.get("stats", [])
 
-        
         sorted_players = sorted(
             available_players,
             key=lambda p: (-self._get_points(p["player_id"], stats), p.get("name", "")),
@@ -226,7 +201,6 @@ class ColorBalancedSwissStrategy(IMatchmakingStrategy):
         matches: list[Match] = []
         paired: set[str] = set()
 
-        
         if len(sorted_players) % 2 == 1:
             bye_player = sorted_players[-1]
             sorted_players = sorted_players[:-1]
@@ -241,16 +215,13 @@ class ColorBalancedSwissStrategy(IMatchmakingStrategy):
             )
             matches.append(bye)
 
-        
         board = 1
         for i in range(0, len(sorted_players) - 1, 2):
             p1 = sorted_players[i]["player_id"]
             p2 = sorted_players[i + 1]["player_id"]
 
-            
             c1, c2 = self._assign_colors(p1, p2, color_history)
 
-            
             color_history.setdefault(p1, []).append(c1)
             color_history.setdefault(p2, []).append(c2)
 
@@ -271,8 +242,6 @@ class ColorBalancedSwissStrategy(IMatchmakingStrategy):
             "matches": matches,
             "color_history": color_history,
         }
-
-    
 
     @staticmethod
     def _get_points(player_id: str, stats: list[dict]) -> float:
@@ -296,7 +265,6 @@ class ColorBalancedSwissStrategy(IMatchmakingStrategy):
         h1 = history.get(p1, [])
         h2 = history.get(p2, [])
 
-        
         def _needs_opposite(h: list[str]) -> str | None:
             if len(h) >= 2 and h[-1] == h[-2]:
                 return "black" if h[-1] == "white" else "white"
@@ -311,10 +279,8 @@ class ColorBalancedSwissStrategy(IMatchmakingStrategy):
             c2 = forced_2
             return ("black" if c2 == "white" else "white"), c2
         if forced_1 and forced_2:
-            
             return forced_1, forced_2
 
-        
         whites_1 = h1.count("white")
         whites_2 = h2.count("white")
 
@@ -323,5 +289,4 @@ class ColorBalancedSwissStrategy(IMatchmakingStrategy):
         elif whites_2 > whites_1:
             return "white", "black"
 
-        
         return "white", "black"

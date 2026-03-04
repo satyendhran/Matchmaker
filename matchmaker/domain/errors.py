@@ -32,9 +32,7 @@ class MatchAlreadyCompletedError(DomainError):
 
     def __init__(self, match_id: str = ""):
         detail = f": {match_id}" if match_id else ""
-        super().__init__(
-            f"Match already completed{detail}", "MATCH_ALREADY_COMPLETED"
-        )
+        super().__init__(f"Match already completed{detail}", "MATCH_ALREADY_COMPLETED")
 
 
 class InvalidMatchResultError(DomainError):
@@ -64,9 +62,7 @@ class WithdrawalNotAllowedError(DomainError):
     """Player cannot withdraw under current tournament rules."""
 
     def __init__(self, reason: str):
-        super().__init__(
-            f"Withdrawal not allowed: {reason}", "WITHDRAWAL_NOT_ALLOWED"
-        )
+        super().__init__(f"Withdrawal not allowed: {reason}", "WITHDRAWAL_NOT_ALLOWED")
 
 
 # ── Auth ──

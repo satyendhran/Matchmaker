@@ -78,9 +78,7 @@ class SQLiteMatchRepository(IMatchRepository):
                 rankings_str = "{}"
 
                 if match.result:
-                    result_str = (
-                        "draw" if match.result.is_draw else "complete"
-                    )
+                    result_str = "draw" if match.result.is_draw else "complete"
                     winner_ids_str = json.dumps(match.result.winner_ids)
                     rankings_str = json.dumps(match.result.rankings)
 
@@ -112,9 +110,7 @@ class SQLiteMatchRepository(IMatchRepository):
                 rankings_str = "{}"
 
                 if match.result:
-                    result_str = (
-                        "draw" if match.result.is_draw else "complete"
-                    )
+                    result_str = "draw" if match.result.is_draw else "complete"
                     winner_ids_str = json.dumps(match.result.winner_ids)
                     rankings_str = json.dumps(match.result.rankings)
 
@@ -178,9 +174,7 @@ class SQLiteMatchRepository(IMatchRepository):
             match_result = None
         elif result_col == "draw":
             state = MatchState.COMPLETED
-            match_result = MatchResult(
-                winner_ids=[], is_draw=True, rankings=rankings
-            )
+            match_result = MatchResult(winner_ids=[], is_draw=True, rankings=rankings)
         elif result_col in ("complete", "forfeited"):
             state = (
                 MatchState.FORFEITED
@@ -211,7 +205,9 @@ class SQLiteMatchRepository(IMatchRepository):
             result=match_result,
             auto_bye=bool(row["auto_bye"]) if "auto_bye" in row.keys() else False,
             scheduled_at=row["scheduled_at"] if "scheduled_at" in row.keys() else "",
-            players_per_match=row["players_per_match"] if "players_per_match" in row.keys() else 2,
+            players_per_match=(
+                row["players_per_match"] if "players_per_match" in row.keys() else 2
+            ),
             version=version,
         )
 

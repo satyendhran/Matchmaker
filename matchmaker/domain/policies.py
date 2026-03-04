@@ -23,14 +23,12 @@ class IScoringPolicy(ABC):
     """Strategy for calculating points from a match result."""
 
     @abstractmethod
-    def get_name(self) -> str:
-        ...
+    def get_name(self) -> str: ...
 
     @abstractmethod
     def calculate_points(
         self, player_id: str, match: MatchAggregate, result: MatchResult
-    ) -> float:
-        ...
+    ) -> float: ...
 
 
 class StandardScoringPolicy(IScoringPolicy):
@@ -76,8 +74,7 @@ class IWithdrawalPolicy(ABC):
     """Policy for determining if a player can withdraw."""
 
     @abstractmethod
-    def get_name(self) -> str:
-        ...
+    def get_name(self) -> str: ...
 
     @abstractmethod
     def can_withdraw(
@@ -110,7 +107,10 @@ class FideWithdrawalPolicy(IWithdrawalPolicy):
         min_rounds: int,
     ) -> tuple[bool, str]:
         if has_active_match:
-            return False, "Cannot withdraw during an active match. Finish or forfeit first."
+            return (
+                False,
+                "Cannot withdraw during an active match. Finish or forfeit first.",
+            )
 
         if rounds_played < min_rounds:
             return (
@@ -148,8 +148,7 @@ class IResultSubmissionPolicy(ABC):
     @abstractmethod
     def can_submit(
         self, user_role: str, user_player_id: str | None, match_player_ids: list[str]
-    ) -> tuple[bool, str]:
-        ...
+    ) -> tuple[bool, str]: ...
 
 
 class StandardResultSubmissionPolicy(IResultSubmissionPolicy):

@@ -7,7 +7,7 @@ between the domain User model and the infrastructure auth provider.
 
 from __future__ import annotations
 
-from matchmaker.domain.errors import AuthenticationError, AuthorizationError
+from matchmaker.domain.errors import AuthenticationError
 from matchmaker.domain.events import UserLoggedIn, UserRegistered
 from matchmaker.domain.interfaces import (
     IAuthProvider,
@@ -91,9 +91,7 @@ class AuthService:
 
         token = self._auth.create_token(user.id, user.username, user.role.value)
 
-        self._events.dispatch(
-            [UserLoggedIn(user_id=user.id, username=user.username)]
-        )
+        self._events.dispatch([UserLoggedIn(user_id=user.id, username=user.username)])
 
         return {
             "user_id": user.id,
