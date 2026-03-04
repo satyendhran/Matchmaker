@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXUS | Competitive Engine</title>
-    
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
-    
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;500;700&display=swap"
+        rel="stylesheet">
+
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
@@ -58,42 +61,40 @@
     </script>
 
     <style>
-        /* --- GLOBAL AESTHETICS --- */
         body {
             background-color: #050505;
             color: #e5e5e5;
             overflow-x: hidden;
         }
 
-        /* Subtle Noise Overlay (Awwwards Style) */
         .noise-overlay {
             position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
             z-index: 50;
             opacity: 0.03;
             background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
         }
 
-        /* Ambient Glow Background */
         .ambient-glow {
             position: fixed;
-            width: 600px; height: 600px;
-            background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, rgba(0,0,0,0) 70%);
-            top: -100px; left: -100px;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+            top: -100px;
+            left: -100px;
             z-index: 0;
             pointer-events: none;
         }
 
-        /* Scrollbar */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
         ::-webkit-scrollbar-thumb:hover { background: #555; }
 
-        /* --- UI COMPONENTS --- */
-        
-        /* Glassmorphism Card */
         .glass-panel {
             background: rgba(20, 20, 20, 0.4);
             backdrop-filter: blur(12px);
@@ -102,15 +103,13 @@
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        
-        /* Interactive Card Hover */
+
         .glass-panel.interactive:hover {
             border-color: rgba(99, 102, 241, 0.3);
             box-shadow: 0 0 20px rgba(99, 102, 241, 0.1);
             transform: translateY(-2px);
         }
 
-        /* Neon Button */
         .btn-neon {
             background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
             color: white;
@@ -118,55 +117,57 @@
             overflow: hidden;
             transition: all 0.3s ease;
             box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
+
         .btn-neon::after {
             content: '';
             position: absolute;
-            top: 0; left: -100%; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
             transition: 0.5s;
         }
+
         .btn-neon:hover::after { left: 100%; }
-        .btn-neon:hover {
-            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-            transform: translateY(-1px);
-        }
+        .btn-neon:hover { box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); transform: translateY(-1px); }
 
         .btn-ghost {
             background: transparent;
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: #a1a1aa;
         }
+
         .btn-ghost:hover {
             background: rgba(255, 255, 255, 0.05);
             color: white;
             border-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* Inputs */
         .input-dark {
             background: rgba(0, 0, 0, 0.3);
             border: 1px solid rgba(255, 255, 255, 0.1);
             color: white;
             transition: all 0.2s;
         }
+
         .input-dark:focus {
             outline: none;
             border-color: #6366f1;
             box-shadow: 0 0 0 1px #6366f1;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0, 0, 0, 0.5);
         }
 
-        /* Sidebar Nav */
         .nav-link {
             position: relative;
             color: #71717a;
             transition: color 0.3s ease;
         }
-        .nav-link:hover, .nav-link.active {
-            color: white;
-        }
+
+        .nav-link:hover, .nav-link.active { color: white; }
+
         .nav-link.active::before {
             content: '';
             position: absolute;
@@ -180,30 +181,28 @@
             box-shadow: 0 0 10px #6366f1;
         }
 
-        /* Loader */
         .loader-orbit {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             border: 2px solid rgba(99, 102, 241, 0.1);
             border-top: 2px solid #6366f1;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+
         @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        /* Transition Wrapper */
-        .view-transition {
-            opacity: 0;
-            transform: translateY(20px);
-        }
+        .view-transition { opacity: 0; transform: translateY(20px); }
     </style>
 </head>
+
 <body class="font-sans text-sm antialiased selection:bg-accent-500 selection:text-white">
 
     <div class="noise-overlay"></div>
     <div class="ambient-glow"></div>
 
     <div class="flex h-screen overflow-hidden relative z-10">
-        
+
         <aside class="w-20 lg:w-64 flex flex-col border-r border-glass-border bg-dark-900/50 backdrop-blur-md z-20 transition-all duration-300">
             <div class="h-20 flex items-center justify-center lg:justify-start lg:px-8 border-b border-glass-border">
                 <div class="w-10 h-10 bg-gradient-to-br from-accent-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-accent-500/20">
@@ -213,23 +212,27 @@
             </div>
 
             <nav class="flex-1 py-8 flex flex-col gap-2 px-4">
-                <div onclick="Router.navigate('dashboard')" id="nav-dashboard" class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
+                <div onclick="Router.navigate('dashboard')" id="nav-dashboard"
+                    class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
                     <i class="ph-bold ph-squares-four text-xl group-hover:text-white transition-colors"></i>
                     <span class="hidden lg:block font-medium">Overview</span>
                 </div>
-                <div onclick="Router.navigate('players')" id="nav-players" class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
+                <div onclick="Router.navigate('players')" id="nav-players"
+                    class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
                     <i class="ph-bold ph-users text-xl group-hover:text-white transition-colors"></i>
                     <span class="hidden lg:block font-medium">Directory</span>
                 </div>
-                <div onclick="Router.navigate('tournaments')" id="nav-tournaments" class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
+                <div onclick="Router.navigate('tournaments')" id="nav-tournaments"
+                    class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
                     <i class="ph-bold ph-trophy text-xl group-hover:text-white transition-colors"></i>
                     <span class="hidden lg:block font-medium">Tournaments</span>
                 </div>
-                
-                <div class="mt-8 mb-2 px-4 hidden lg:block">
+
+                <div class="mt-8 mb-2 px-4 hidden lg:block" id="nav-system-label">
                     <p class="text-xs font-bold text-gray-600 uppercase tracking-widest">System</p>
                 </div>
-                <div onclick="Handlers.reloadPlugins()" class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
+                <div id="nav-reload-plugins" onclick="Handlers.reloadPlugins()"
+                    class="nav-link flex items-center gap-4 px-4 py-3 rounded-lg cursor-pointer group">
                     <i class="ph-bold ph-plug text-xl group-hover:text-white transition-colors"></i>
                     <span class="hidden lg:block font-medium">Reload Plugins</span>
                 </div>
@@ -240,10 +243,14 @@
                     <div class="w-8 h-8 rounded-full bg-gradient-to-r from-gray-700 to-gray-600 border border-gray-500 flex items-center justify-center">
                         <i class="ph-bold ph-user text-white text-xs"></i>
                     </div>
-                    <div class="hidden lg:block overflow-hidden">
-                        <p class="text-xs font-bold text-white">Admin</p>
-                        <p class="text-[10px] text-accent-400">System Online</p>
+                    <div class="hidden lg:block overflow-hidden flex-1">
+                        <p id="sidebar-username" class="text-xs font-bold text-white">Admin</p>
+                        <p id="sidebar-role" class="text-[10px] text-accent-400">System Online</p>
                     </div>
+                    <button onclick="Handlers.logout()" title="Logout"
+                        class="hidden lg:flex w-7 h-7 rounded-lg border border-white/10 items-center justify-center text-gray-500 hover:text-red-400 hover:border-red-500/30 transition-all">
+                        <i class="ph-bold ph-sign-out text-xs"></i>
+                    </button>
                 </div>
             </div>
         </aside>
@@ -254,7 +261,7 @@
                     <h1 id="page-title" class="font-display font-bold text-2xl text-white tracking-tight">Dashboard</h1>
                     <p id="page-subtitle" class="text-xs text-gray-500 font-mono mt-0.5">NEXUS TOURNAMENT ENGINE V1.0</p>
                 </div>
-                
+
                 <div class="flex items-center gap-6">
                     <div id="global-loader" class="hidden opacity-0 transition-opacity duration-300">
                         <div class="w-5 h-5 border-2 border-accent-500 border-t-transparent rounded-full animate-spin"></div>
@@ -264,7 +271,8 @@
                         <button class="w-10 h-10 rounded-full border border-glass-border flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all">
                             <i class="ph-bold ph-bell"></i>
                         </button>
-                        <button onclick="Modals.showSettings()" class="w-10 h-10 rounded-full border border-glass-border flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                        <button onclick="Modals.showSettings()"
+                            class="w-10 h-10 rounded-full border border-glass-border flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/5 transition-all">
                             <i class="ph-bold ph-gear"></i>
                         </button>
                     </div>
@@ -276,108 +284,173 @@
         </main>
     </div>
 
-    <div id="modal-overlay" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center opacity-0 transition-opacity duration-300">
-        <div id="modal-content" class="glass-panel w-full max-w-lg rounded-2xl p-0 transform scale-95 opacity-0 transition-all duration-300 overflow-hidden shadow-2xl shadow-accent-500/10 border-gray-700">
+    <div id="modal-overlay"
+        class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden items-center justify-center opacity-0 transition-opacity duration-300">
+        <div id="modal-content"
+            class="glass-panel w-full max-w-lg rounded-2xl p-0 transform scale-95 opacity-0 transition-all duration-300 overflow-hidden shadow-2xl shadow-accent-500/10 border-gray-700">
         </div>
     </div>
 
     <div id="toast-container" class="fixed bottom-8 right-8 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
     <script>
-        // --- API LAYER ---
+        // ─── API LAYER ───────────────────────────────────────────────────────────────
         const API = {
             baseUrl: '',
             async req(endpoint, method = 'GET', body = null) {
                 Loader.start();
                 try {
-                    const opts = { method, headers: { 'Content-Type': 'application/json' } };
+                    const opts = { method, headers: { 'Content-Type': 'application/json' }, credentials: 'include' };
                     if (body) opts.body = JSON.stringify(body);
                     const res = await fetch(endpoint, opts);
-                    const data = await res.json();
-                    if (!res.ok) throw new Error(data.error || `Error ${res.status}`);
+                    let data;
+                    const responseText = await res.text();
+                    try { data = JSON.parse(responseText); }
+                    catch (_) { data = { error: responseText ? `Server error (${res.status})` : `Error ${res.status}` }; }
+                    if (!res.ok) {
+                        if (res.status === 401) { window.location.href = '/login'; return; }
+                        const err = new Error(data.error || `Error ${res.status}`);
+                        if (data.code) err.code = data.code;
+                        throw err;
+                    }
                     return data;
                 } catch (e) {
-                    Toast.show(e.message, 'error');
+                    if (!(e instanceof TypeError && e.message === 'Failed to fetch')) Toast.show(e.message, 'error');
                     throw e;
-                } finally {
-                    Loader.stop();
-                }
+                } finally { Loader.stop(); }
             },
-            getPlayers: () => API.req('/api/players'),
-            createPlayer: (name) => API.req('/api/players', 'POST', { name }),
-            getTournaments: () => API.req('/api/tournaments'),
-            createTournament: (name) => API.req('/api/tournaments', 'POST', { name }),
-            getTournament: (id) => API.req(`/api/tournaments/${id}`),
-            addPlayers: (id, pIds) => API.req(`/api/tournaments/${id}/players`, 'POST', { player_ids: pIds }),
-            getRounds: (id) => API.req(`/api/tournaments/${id}/rounds`),
-            createRound: (id, s, ppm) => API.req(`/api/tournaments/${id}/rounds`, 'POST', { strategy: s, players_per_match: ppm }),
-            getMatches: (rid) => API.req(`/api/rounds/${rid}/matches`),
-            recordResult: (mid, data) => API.req(`/api/matches/${mid}/result`, 'POST', data),
-            getStandings: (id) => API.req(`/api/tournaments/${id}/standings`),
-            getStrategies: () => API.req('/api/strategies'),
-            getCalculators: () => API.req('/api/calculators'),
-            setCalculator: (id, calc) => API.req(`/api/tournaments/${id}/calculator`, 'POST', { calculator: calc }),
-            reloadPlugins: () => API.req('/api/plugins/reload', 'POST'),
+            getPlayers:        ()          => API.req('/api/players'),
+            createPlayer:      (payload)   => API.req('/api/players', 'POST', typeof payload === 'string' ? { name: payload } : payload),
+            deletePlayer:      (id)        => API.req(`/api/players/${id}`, 'DELETE'),
+            getTournaments:    ()          => API.req('/api/tournaments'),
+            createTournament:  (name)      => API.req('/api/tournaments', 'POST', { name }),
+            getTournament:     (id)        => API.req(`/api/tournaments/${id}`),
+            addPlayers:        (id, pIds)  => API.req(`/api/tournaments/${id}/players`, 'POST', { player_ids: pIds }),
+            getRounds:         (id)        => API.req(`/api/tournaments/${id}/rounds`),
+            createRound:       (id, s, ppm, force = false) => API.req(`/api/tournaments/${id}/rounds`, 'POST', { round_type: s, players_per_match: ppm, force }),
+            getMatches:        (rid)       => API.req(`/api/rounds/${rid}/matches`),
+            recordResult:      (mid, data) => API.req(`/api/matches/${mid}/result`, 'POST', data),
+            getStandings:      (id)        => API.req(`/api/tournaments/${id}/standings`),
+            getStrategies:     ()          => API.req('/api/strategies'),
+            getCalculators:    ()          => API.req('/api/calculators'),
+            setCalculator:     (id, calc)  => API.req(`/api/tournaments/${id}/calculator`, 'POST', { calculator: calc }),
+            reloadPlugins:     ()          => API.req('/api/plugins/reload', 'POST'),
+            exportTournament:  (id)        => { window.location.href = `/api/tournaments/${id}/export`; },
+            // FIDE
+            fideGetTournaments:  ()           => API.req('/api/fide/tournaments'),
+            fideCreateTournament:(d)          => API.req('/api/fide/tournaments', 'POST', d),
+            fideGetTournament:   (id)         => API.req(`/api/fide/tournaments/${id}`),
+            fideGetPlayers:      (id)         => API.req(`/api/fide/tournaments/${id}/players`),
+            fideRegisterPlayer:  (id, d)      => API.req(`/api/fide/tournaments/${id}/players`, 'POST', d),
+            fideRemovePlayer:    (id, pid)    => API.req(`/api/fide/tournaments/${id}/players/${pid}`, 'DELETE'),
+            fideStartingRank:    (id)         => API.req(`/api/fide/tournaments/${id}/starting-rank`),
+            fideCreateRound:     (id, force = false) => API.req(`/api/fide/tournaments/${id}/rounds`, 'POST', { force }),
+            fideGetPairings:     (id, n)      => API.req(`/api/fide/tournaments/${id}/rounds/${n}/pairings`),
+            fideGetStandings:    (id, cat)    => API.req(`/api/fide/tournaments/${id}/standings${cat ? '?category=' + cat : ''}`),
+            fideGetCrosstable:   (id)         => API.req(`/api/fide/tournaments/${id}/crosstable`),
+            fideGetPlayerCard:   (id, pid)    => API.req(`/api/fide/tournaments/${id}/player-card/${pid}`),
+            fideGetTitleNorms:   (id)         => API.req(`/api/fide/tournaments/${id}/title-norms`),
+            fideGetColors:       (id)         => API.req(`/api/fide/tournaments/${id}/colors`),
+            fideRecordResult:    (mid, r)     => API.req(`/api/fide/matches/${mid}/result`, 'POST', { result: r }),
+            fideExport:          (id, r)      => { window.location.href = `/api/fide/tournaments/${id}/export?round=${r || 'all'}`; },
+            // Auth
+            logout:         ()     => API.req('/api/auth/logout', 'POST'),
+            changePassword: (data) => API.req('/api/auth/admin/change-password', 'POST', data),
         };
 
-        // --- STATE MANAGEMENT ---
+        // ─── STATE ───────────────────────────────────────────────────────────────────
         const State = {
-            activeTournament: null,
-            strategies: [],
-            calculators: [],
-            currentCalculator: 'standard'
+            activeTournament:    null,
+            strategies:          [],
+            calculators:         [],
+            currentCalculator:   'standard',
+            activeFideTournament:null,
+            fideTab:             'pairings',
+            fideCategoryFilter:  null,
+            selectedRound:       'all',
+            selectedFideRound:   'all',
+            currentUser:         null,
         };
 
-        // --- ROUTER & ANIMATIONS ---
+        // ─── HELPERS ─────────────────────────────────────────────────────────────────
+        const isPlayerRole = () => State.currentUser && State.currentUser.role === 'player';
+
+        // ─── ROUTER ──────────────────────────────────────────────────────────────────
         const Router = {
             async navigate(view, params = null) {
-                // Update Sidebar
+                if (isPlayerRole() && (view === 'dashboard' || view === 'players')) view = 'player_dashboard';
+
                 document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
                 const nav = document.getElementById(`nav-${view}`);
                 if (nav) nav.classList.add('active');
 
-                // Container
                 const container = document.getElementById('view-container');
-                
-                // Fade Out Old
-                gsap.to(container, { opacity: 0, y: -10, duration: 0.2, onComplete: async () => {
-                    container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-gray-500 gap-4"><div class="loader-orbit"></div><p class="font-mono text-xs tracking-widest uppercase">Loading Data Stream...</p></div>`;
-                    gsap.to(container, { opacity: 1, y: 0, duration: 0.2 });
-                    
-                    try {
-                        let html = '';
-                        switch(view) {
-                            case 'dashboard': html = await Views.Dashboard(); break;
-                            case 'players': html = await Views.Players(); break;
-                            case 'tournaments': html = await Views.Tournaments(); break;
-                            case 'tournament_detail': html = await Views.TournamentDetail(params); break;
+                gsap.to(container, {
+                    opacity: 0, y: -10, duration: 0.2, onComplete: async () => {
+                        container.innerHTML = `<div class="h-full flex flex-col items-center justify-center text-gray-500 gap-4"><div class="loader-orbit"></div><p class="font-mono text-xs tracking-widest uppercase">Loading Data Stream...</p></div>`;
+                        gsap.to(container, { opacity: 1, y: 0, duration: 0.2 });
+                        try {
+                            let html = '';
+                            switch (view) {
+                                case 'dashboard':         html = await Views.AdminDashboard(); break;
+                                case 'players':           html = await Views.Players(); break;
+                                case 'tournaments':       html = await Views.Tournaments(); break;
+                                case 'tournament_detail': html = await Views.TournamentDetail(params); break;
+                                case 'fide_detail':       html = await Views.FideDetail(params); break;
+                                case 'admin_dashboard':   html = await Views.AdminDashboard(); break;
+                                case 'player_dashboard':  html = await Views.PlayerPage(); break;
+                            }
+                            container.innerHTML = html;
+                            gsap.fromTo('.animate-enter', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, ease: 'power2.out' });
+                        } catch (e) {
+                            console.error(e);
+                            container.innerHTML = Components.ErrorState(e.message);
                         }
-                        
-                        container.innerHTML = html;
-                        
-                        // Animate In New Elements
-                        gsap.fromTo(".animate-enter", 
-                            { opacity: 0, y: 20 }, 
-                            { opacity: 1, y: 0, duration: 0.4, stagger: 0.05, ease: "power2.out" }
-                        );
-
-                    } catch (e) {
-                        console.error(e);
-                        container.innerHTML = Components.ErrorState(e.message);
                     }
-                }});
+                });
             }
         };
 
-        // --- VIEWS ---
+        // ─── VIEWS ───────────────────────────────────────────────────────────────────
         const Views = {
-            async Dashboard() {
+
+            async PlayerPage() {
+                const [tournaments, user] = await Promise.all([API.getTournaments(), API.req('/api/auth/me')]);
+                document.getElementById('page-title').innerText = 'Player Hub';
+                document.getElementById('page-subtitle').innerText = `WELCOME, ${user.name.toUpperCase()}`;
+                return `
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 animate-enter">
+                        <div class="lg:col-span-2 glass-panel rounded-2xl p-8 relative overflow-hidden flex flex-col justify-center">
+                            <div class="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                            <div class="relative z-10 flex items-center gap-6">
+                                <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-gray-800 to-black border border-gray-700 flex items-center justify-center font-display font-bold text-3xl text-gray-400">
+                                    ${user.name.substring(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h2 class="font-display font-bold text-3xl text-white mb-1">${user.name}</h2>
+                                    <p class="text-gray-400 font-mono text-xs">PLAYER ID: ${user.player_id}</p>
+                                    <p class="text-gray-500 font-mono text-xs mt-1">DOB: ${user.date_of_birth}</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="glass-panel rounded-2xl p-6 flex flex-col justify-center items-center text-center">
+                            <span class="text-4xl font-display font-bold text-white mb-1">${tournaments.length}</span>
+                            <span class="text-xs font-mono text-gray-500 uppercase tracking-widest">Active Tournaments</span>
+                        </div>
+                    </div>
+                    <div class="animate-enter">
+                        <h3 class="font-display font-bold text-xl text-white mb-4 px-2">My Tournaments</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            ${tournaments.length ? tournaments.map(t => Components.TournamentCard(t)).join('') : Components.EmptyState('You are not registered in any tournaments yet.')}
+                        </div>
+                    </div>`;
+            },
+
+            async AdminDashboard() {
                 const [players, tournaments] = await Promise.all([API.getPlayers(), API.getTournaments()]);
                 const recentTourneys = tournaments.slice(0, 3);
-                
-                document.getElementById('page-title').innerText = 'Dashboard';
+                document.getElementById('page-title').innerText = 'Admin Dashboard';
                 document.getElementById('page-subtitle').innerText = `SYSTEM STATUS: OPTIMAL • ${new Date().toLocaleDateString()}`;
-
                 return `
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                         <div class="lg:col-span-2 glass-panel rounded-2xl p-8 relative overflow-hidden animate-enter group">
@@ -391,7 +464,6 @@
                                 <button onclick="Router.navigate('players')" class="btn-ghost px-6 py-2.5 rounded-lg font-medium text-sm">Manage Players</button>
                             </div>
                         </div>
-
                         <div class="glass-panel rounded-2xl p-6 flex flex-col justify-center items-center text-center animate-enter hover:border-accent-500/50 transition-colors">
                             <div class="w-16 h-16 rounded-full bg-surface-500/10 border border-white/10 flex items-center justify-center mb-4 text-accent-400">
                                 <i class="ph-duotone ph-users text-3xl"></i>
@@ -400,7 +472,6 @@
                             <span class="text-xs font-mono text-gray-500 uppercase tracking-widest">Total Players</span>
                         </div>
                     </div>
-
                     <div class="animate-enter">
                         <div class="flex justify-between items-end mb-4 px-2">
                             <h3 class="font-display font-bold text-xl text-white">Recent Tournaments</h3>
@@ -409,17 +480,15 @@
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                             ${recentTourneys.length ? recentTourneys.map(t => Components.TournamentCard(t)).join('') : Components.EmptyState('No tournaments yet')}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             },
 
             async Players() {
                 const players = await API.getPlayers();
                 document.getElementById('page-title').innerText = 'Player Directory';
-                
                 return `
                     <div class="flex flex-col h-full animate-enter">
-                <div class="flex justify-between items-center mb-6">
+                        <div class="flex justify-between items-center mb-6">
                             <div class="relative w-full max-w-sm">
                                 <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
                                 <input type="text" placeholder="Search players..." class="input-dark w-full pl-10 pr-4 py-2.5 rounded-lg text-sm" onkeyup="Handlers.searchPlayers(this.value)">
@@ -428,82 +497,110 @@
                                 <i class="ph-bold ph-user-plus"></i> <span class="hidden sm:inline">New Player</span>
                             </button>
                         </div>
-
                         <div id="players-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             ${players.map(p => `
                                 <div class="glass-panel p-4 rounded-xl flex items-center gap-4 interactive group player-card" data-name="${p.name.toLowerCase()}" data-id="${p.short_id.toLowerCase()}">
                                     <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-gray-800 to-black border border-gray-700 flex items-center justify-center font-display font-bold text-lg text-gray-400 group-hover:text-accent-400 group-hover:border-accent-500/50 transition-all">
-                                        ${p.name.substring(0,2).toUpperCase()}
+                                        ${p.name.substring(0, 2).toUpperCase()}
                                     </div>
                                     <div class="flex-1 min-w-0">
                                         <h4 class="text-white font-medium truncate">${p.name}</h4>
                                         <p class="text-xs text-gray-500 font-mono truncate">ID: ${p.short_id}</p>
+                                        <p class="text-[10px] text-gray-600 font-mono truncate">${p.date_of_birth ? `DOB: ${p.date_of_birth}` : ''}</p>
                                     </div>
-                                    <button class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-400">
+                                    <button onclick="event.stopPropagation(); Handlers.deletePlayer('${p.id}', '${p.name.replace(/'/g, "\\'")}')" class="opacity-0 group-hover:opacity-100 transition-opacity text-gray-500 hover:text-red-400">
                                         <i class="ph-bold ph-trash"></i>
                                     </button>
                                 </div>
                             `).join('')}
                         </div>
                         ${players.length === 0 ? Components.EmptyState('No players in database') : ''}
-                    </div>
-                `;
+                    </div>`;
             },
 
             async Tournaments() {
-                const tournaments = await API.getTournaments();
+                const [stdTournaments, fideTournaments] = await Promise.all([
+                    API.getTournaments(),
+                    API.fideGetTournaments().catch(() => [])
+                ]);
+                const allTournaments = [
+                    ...stdTournaments.map(t => ({ ...t, type: 'standard' })),
+                    ...fideTournaments.map(t => ({ ...t, type: 'fide' }))
+                ].sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+
                 document.getElementById('page-title').innerText = 'Tournaments';
-                
+                document.getElementById('page-subtitle').innerText = 'MANAGE COMPETITIVE EVENTS';
                 return `
                     <div class="animate-enter">
-                         <div class="flex justify-between items-center mb-8">
-                            <p class="text-gray-400 max-w-lg">Manage competitive brackets, generate rounds, and track standings.</p>
+                        <div class="flex justify-between items-center mb-8">
+                            <p class="text-gray-400 max-w-lg">Manage competitive brackets, generate rounds, and track standings used unified logic.</p>
                             <button onclick="Modals.createTournament()" class="btn-neon px-5 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2">
                                 <i class="ph-bold ph-plus"></i> Create New
                             </button>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            ${tournaments.map(t => Components.TournamentCard(t)).join('')}
+                            ${allTournaments.map(t => Components.UnifiedTournamentCard(t)).join('')}
                         </div>
-                        ${tournaments.length === 0 ? Components.EmptyState('No tournaments found. Create one to begin.') : ''}
-                    </div>
-                `;
+                        ${allTournaments.length === 0 ? Components.EmptyState('No tournaments found. Create one to begin.') : ''}
+                    </div>`;
             },
 
             async TournamentDetail(id) {
                 const t = await API.getTournament(id);
                 State.activeTournament = t;
+                const isFide = t.is_fide === true || t.type === 'fide';
+                const isPlayer = isPlayerRole();   // ← FIX: resolved here at render time
                 const [rounds, standings] = await Promise.all([API.getRounds(id), API.getStandings(id)]);
-                
+
                 document.getElementById('page-title').innerText = t.name;
                 document.getElementById('page-subtitle').innerText = `TOURNAMENT ID: ${t.id}`;
 
+                const roundOrdinals = rounds.map(r => r.ordinal);
+                const latestRound = roundOrdinals.length ? Math.max(...roundOrdinals) : null;
+                if (latestRound !== null) {
+                    const sel = parseInt(State.selectedRound);
+                    if (!sel || !roundOrdinals.includes(sel)) State.selectedRound = String(latestRound);
+                }
+                const filteredRounds = latestRound === null ? [] : rounds.filter(r => r.ordinal === parseInt(State.selectedRound));
+
                 return `
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
-                        
                         <div class="lg:col-span-2 flex flex-col gap-6 animate-enter">
                             <div class="glass-panel p-4 rounded-xl flex flex-wrap gap-3 items-center justify-between">
                                 <div class="flex items-center gap-3">
                                     <span class="px-3 py-1 rounded bg-accent-500/10 border border-accent-500/20 text-accent-400 text-xs font-mono">
                                         ${t.players.length} PLAYERS
                                     </span>
-                                    <span class="px-3 py-1 rounded bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-mono">
-                                        ACTIVE
-                                    </span>
+                                    <span class="px-3 py-1 rounded bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-mono">ACTIVE</span>
+                                    ${isFide ? `<span class="px-3 py-1 rounded bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-mono flex items-center gap-1"><i class="ph-bold ph-crown"></i> FIDE CHESS</span>` : ''}
                                 </div>
-                                <div class="flex gap-3">
+                                <div class="flex gap-3 flex-wrap">
+                                    <select onchange="State.selectedRound = this.value; Router.navigate('tournament_detail', '${t.id}')"
+                                        ${rounds.length === 0 ? 'disabled' : ''}
+                                        class="bg-black/20 border border-white/10 rounded-lg text-xs font-bold px-3 py-2 text-gray-300 focus:outline-none focus:border-accent-500">
+                                        ${rounds.length === 0
+                                            ? '<option value="" selected>No Rounds</option>'
+                                            : rounds.map(r => `<option value="${r.ordinal}" ${State.selectedRound == r.ordinal ? 'selected' : ''}>Round ${r.ordinal}</option>`).join('')}
+                                    </select>
+                                    <button onclick="API.exportTournament('${t.id}')" class="btn-ghost px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide">
+                                        <i class="ph-bold ph-download-simple mr-1"></i> Export
+                                    </button>
+                                    ${!isPlayer ? `
                                     <button onclick="Modals.addPlayersToTournament('${t.id}')" class="btn-ghost px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide">
                                         Add Players
                                     </button>
-                                    <button onclick="Modals.createRound('${t.id}')" class="btn-neon px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide shadow-lg shadow-accent-500/20">
-                                        <i class="ph-bold ph-play mr-1"></i> Create Round
+                                    <button onclick="Modals.createRound('${t.id}', ${isFide})" class="${isFide
+                                        ? 'btn-neon px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide shadow-lg shadow-amber-500/20 bg-gradient-to-r from-amber-600 to-yellow-500'
+                                        : 'btn-neon px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide shadow-lg shadow-accent-500/20'}">
+                                        <i class="ph-bold ph-${isFide ? 'crown' : 'play'} mr-1"></i> ${isFide ? 'Generate FIDE Round' : 'Create Round'}
                                     </button>
+                                    ` : ''}
                                 </div>
                             </div>
 
                             <div class="space-y-6">
                                 ${rounds.length === 0 ? Components.EmptyState('No matches generated yet.', 'Start by adding players and creating Round 1') : ''}
-                                ${await Promise.all(rounds.map(async (r, idx) => {
+                                ${await Promise.all(filteredRounds.map(async (r, idx) => {
                                     const mData = await API.getMatches(r.id);
                                     return Components.RoundBlock(r, mData, rounds.length - idx);
                                 })).then(r => r.join(''))}
@@ -524,7 +621,7 @@
                                         </tr>
                                     </thead>
                                     <tbody class="text-sm">
-                                        ${standings.map((s, i) => `
+                                        ${standings.map(s => `
                                             <tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
                                                 <td class="p-3 font-mono text-gray-500 group-hover:text-white">${s.rank}</td>
                                                 <td class="p-3 font-medium text-gray-300 group-hover:text-white">${s.name}</td>
@@ -535,12 +632,340 @@
                                 </table>
                             </div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
+            },
+
+            async FideDetail(id) {
+                const t = await API.fideGetTournament(id);
+                State.activeFideTournament = t;
+                const players = await API.fideGetPlayers(id);
+                const isPlayer = isPlayerRole();   // ← FIX: resolved here at render time
+
+                document.getElementById('page-title').innerText = t.name;
+                document.getElementById('page-subtitle').innerText = `FIDE SWISS • ${t.tournament_date} • Round ${t.current_round}/${t.max_rounds}`;
+
+                const tabClass = (tab) => State.fideTab === tab
+                    ? 'bg-amber-500/20 border-amber-500/40 text-amber-400'
+                    : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10';
+
+                return `
+                    <div class="animate-enter">
+                        <div class="glass-panel p-4 rounded-xl flex flex-wrap gap-3 items-center justify-between mb-6">
+                            <div class="flex items-center gap-4 flex-wrap">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                                        <i class="ph-bold ph-users"></i>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-bold text-white">${players.length}</span>
+                                        <span class="text-[10px] text-gray-500 uppercase tracking-wider">Players</span>
+                                    </div>
+                                </div>
+                                <div class="w-px h-8 bg-white/5"></div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                                        <i class="ph-bold ph-clock"></i>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-xs font-bold text-white">Rd ${t.current_round}/${t.max_rounds}</span>
+                                        <span class="text-[10px] text-gray-500 uppercase tracking-wider">Progress</span>
+                                    </div>
+                                </div>
+                                <div class="w-px h-8 bg-white/5"></div>
+                                <span class="px-2 py-1 rounded bg-white/5 border border-white/10 text-gray-400 text-[10px] font-mono uppercase tracking-wider">${t.time_control}</span>
+                            </div>
+
+                            <div class="flex gap-2 flex-wrap">
+                                <select onchange="State.selectedFideRound = this.value; Router.navigate('fide_detail', '${t.id}')"
+                                    class="bg-black/40 border border-white/10 rounded-lg text-xs font-bold px-3 py-2 text-gray-300 focus:outline-none focus:border-amber-500 transition-colors cursor-pointer hover:bg-white/5">
+                                    <option value="all" ${State.selectedFideRound === 'all' ? 'selected' : ''}>All Rounds</option>
+                                    ${Array.from({ length: t.current_round }, (_, i) => i + 1).map(r => `<option value="${r}" ${State.selectedFideRound == r ? 'selected' : ''}>Round ${r}</option>`).join('')}
+                                </select>
+                                <button onclick="API.fideExport('${t.id}', State.selectedFideRound)" class="btn-ghost px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2 hover:border-green-500/50 hover:text-green-400 transition-all">
+                                    <i class="ph-bold ph-download-simple"></i> <span class="hidden sm:inline">Export</span>
+                                </button>
+                                ${!isPlayer ? `
+                                <button onclick="FideModals.registerPlayer('${id}')" class="btn-ghost px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center gap-2">
+                                    <i class="ph-bold ph-user-plus"></i> <span class="hidden sm:inline">Add</span>
+                                </button>
+                                <button onclick="FideHandlers.createRound('${id}')" class="btn-neon px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide shadow-lg shadow-amber-500/10 flex items-center gap-2">
+                                    <i class="ph-bold ph-play"></i> <span class="hidden sm:inline">Generate</span>
+                                </button>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 mb-6 flex-wrap">
+                            ${['players', 'pairings', 'standings', 'crosstable', 'norms'].map(tab => `
+                                <button onclick="State.fideTab='${tab}'; Router.navigate('fide_detail','${id}')"
+                                    class="px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wide border transition-all ${tabClass(tab)}">
+                                    ${tab === 'norms' ? 'Title Norms' : tab.charAt(0).toUpperCase() + tab.slice(1)}
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <div id="fide-tab-content">
+                            ${await FideViews.renderTab(id, State.fideTab, players, t)}
+                        </div>
+                    </div>`;
             }
         };
 
-        // --- COMPONENT LIBRARY ---
+        // ─── FIDE TAB VIEWS ──────────────────────────────────────────────────────────
+        const FideViews = {
+            async renderTab(tid, tab, players, tournament) {
+                switch (tab) {
+                    case 'players':    return this.PlayersTab(tid, players, tournament);
+                    case 'pairings':   return await this.PairingsTab(tid, tournament);
+                    case 'standings':  return await this.StandingsTab(tid, tournament);
+                    case 'crosstable': return await this.CrosstableTab(tid);
+                    case 'norms':      return await this.NormsTab(tid);
+                    default:           return '';
+                }
+            },
+
+            PlayersTab(tid, players, tournament) {
+                const isPlayer = isPlayerRole();   // ← FIX: hide delete column for players
+                return `
+                    <div class="glass-panel rounded-xl overflow-hidden">
+                        <div class="px-6 py-3 bg-white/5 border-b border-white/5 flex justify-between items-center">
+                            <h4 class="font-bold text-white text-sm">Starting Rank List</h4>
+                            <span class="text-xs text-gray-500 font-mono">${players.length} players</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead class="text-[10px] text-gray-500 font-mono uppercase bg-black/20">
+                                    <tr>
+                                        <th class="p-3">SNo</th>
+                                        <th class="p-3">Title</th>
+                                        <th class="p-3">Name</th>
+                                        <th class="p-3 text-right">Rtg</th>
+                                        <th class="p-3">Fed</th>
+                                        <th class="p-3">Club</th>
+                                        <th class="p-3">DOB</th>
+                                        <th class="p-3">Cat</th>
+                                        ${!isPlayer ? '<th class="p-3"></th>' : ''}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${players.map(p => `
+                                        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                                            <td class="p-3 font-mono text-gray-500">${p.starting_rank}</td>
+                                            <td class="p-3"><span class="text-amber-400 font-bold text-xs">${p.title || ''}</span></td>
+                                            <td class="p-3 font-medium text-white cursor-pointer hover:text-amber-400" onclick="FideModals.playerCard('${tid}','${p.player_id}')">${p.name}</td>
+                                            <td class="p-3 text-right font-mono text-accent-400">${p.rating || 0}</td>
+                                            <td class="p-3 text-gray-400">${p.federation || ''}</td>
+                                            <td class="p-3 text-gray-400">${p.club || ''}</td>
+                                            <td class="p-3 text-gray-500 font-mono text-xs">${p.dob || ''}</td>
+                                            <td class="p-3"><span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 border border-amber-500/20 text-amber-400">${p.category}</span></td>
+                                            ${!isPlayer ? `
+                                            <td class="p-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button onclick="event.stopPropagation(); FideHandlers.removePlayer('${tid}','${p.player_id}')" class="text-gray-500 hover:text-red-400">
+                                                    <i class="ph-bold ph-trash"></i>
+                                                </button>
+                                            </td>` : ''}
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            },
+
+            async PairingsTab(tid, tournament) {
+                if (!tournament.current_round || tournament.current_round === 0)
+                    return Components.EmptyState('No rounds generated yet', 'Click "Generate Round" to create the first round');
+
+                const isPlayer = isPlayerRole();   // ← FIX: hide Record button for players
+                let html = '';
+                const roundsToShow = State.selectedFideRound === 'all'
+                    ? Array.from({ length: tournament.current_round }, (_, i) => i + 1).reverse()
+                    : [parseInt(State.selectedFideRound)];
+
+                for (let r of roundsToShow) {
+                    const pairings = await API.fideGetPairings(tid, r);
+                    html += `
+                        <div class="glass-panel rounded-xl overflow-hidden mb-6 border-l-4 border-l-amber-500">
+                            <div class="px-6 py-4 bg-white/5 border-b border-white/5 flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-bold text-white text-sm tracking-wide">ROUND ${r}</h4>
+                                    <span class="text-[10px] text-gray-500 font-mono">FIDE DUTCH SWISS</span>
+                                </div>
+                                <span class="text-xs bg-black/30 px-2 py-1 rounded text-gray-400 border border-white/5">${pairings.length} Boards</span>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-sm border-collapse">
+                                    <thead class="text-[10px] text-gray-500 font-mono uppercase bg-black/20">
+                                        <tr>
+                                            <th class="p-3 text-center">Brd</th>
+                                            <th class="p-3">White</th>
+                                            <th class="p-3 text-right">Rtg</th>
+                                            <th class="p-3 text-center">Result</th>
+                                            <th class="p-3 text-right">Rtg</th>
+                                            <th class="p-3 text-right">Black</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${pairings.map(p => {
+                                            const wr = p.white_result || '';
+                                            const br = p.black_result || '';
+                                            const resultStr = wr && br ? (wr === '1' ? '1-0' : wr === '0' ? '0-1' : '½-½') : '—';
+                                            const done = wr && br;
+                                            return `
+                                            <tr class="border-b border-white/5 hover:bg-white/5 transition-colors group">
+                                                <td class="p-3 text-center font-mono text-gray-500">${p.board}</td>
+                                                <td class="p-3 font-medium text-white">
+                                                    <span class="inline-flex items-center gap-2">
+                                                        <span class="w-4 h-4 rounded-sm bg-white border border-gray-300 inline-block flex-shrink-0"></span>
+                                                        ${p.white_title ? `<span class="text-amber-400 text-xs font-bold">${p.white_title}</span>` : ''}
+                                                        <span class="cursor-pointer hover:text-amber-400" onclick="FideModals.playerCard('${tid}','${p.white_id}')">${p.white_name || '?'}</span>
+                                                    </span>
+                                                </td>
+                                                <td class="p-3 text-right font-mono text-gray-400">${p.white_rating || 0}</td>
+                                                <td class="p-3 text-center">
+                                                    ${done
+                                                        ? `<span class="font-bold text-white bg-white/10 px-2 py-1 rounded">${resultStr}</span>`
+                                                        : (!isPlayer
+                                                            ? `<button onclick="FideModals.recordResult('${tid}', ${r}, ${JSON.stringify(p).replace(/"/g, '&quot;')})" class="text-xs text-amber-400 hover:text-white border border-amber-500/30 hover:bg-amber-500 px-3 py-1 rounded transition-all">Record</button>`
+                                                            : `<span class="text-gray-600 font-mono text-xs">—</span>`)
+                                                    }
+                                                </td>
+                                                <td class="p-3 text-right font-mono text-gray-400">${p.black_rating || 0}</td>
+                                                <td class="p-3 text-right font-medium text-white">
+                                                    <span class="inline-flex items-center justify-end gap-2">
+                                                        <span class="cursor-pointer hover:text-amber-400" onclick="FideModals.playerCard('${tid}','${p.black_id}')">${p.black_name || '?'}</span>
+                                                        ${p.black_title ? `<span class="text-amber-400 text-xs font-bold">${p.black_title}</span>` : ''}
+                                                        <span class="w-4 h-4 rounded-sm bg-gray-800 border border-gray-600 inline-block flex-shrink-0"></span>
+                                                    </span>
+                                                </td>
+                                            </tr>`;
+                                        }).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>`;
+                }
+                return html;
+            },
+
+            async StandingsTab(tid, tournament) {
+                const cats = tournament.categories || ['Open'];
+                const catBtns = ['All', ...cats].map(c => {
+                    const active = (c === 'All' && !State.fideCategoryFilter) || State.fideCategoryFilter === c;
+                    return `<button onclick="State.fideCategoryFilter=${c === 'All' ? 'null' : "'" + c + "'"}; Router.navigate('fide_detail','${tid}')"
+                        class="px-3 py-1 rounded text-xs font-bold transition-all ${active ? 'bg-amber-500/20 border-amber-500/40 text-amber-400 border' : 'bg-white/5 border border-white/10 text-gray-400 hover:text-white'}">${c}</button>`;
+                }).join('');
+
+                const standings = await API.fideGetStandings(tid, State.fideCategoryFilter);
+                const maxRounds = tournament.current_round || 0;
+
+                return `
+                    <div class="mb-4 flex gap-2 flex-wrap">${catBtns}</div>
+                    <div class="glass-panel rounded-xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse text-sm">
+                                <thead class="text-[10px] text-gray-500 font-mono uppercase bg-black/20 sticky top-0">
+                                    <tr>
+                                        <th class="p-3">Rk</th>
+                                        <th class="p-3">SNo</th>
+                                        <th class="p-3">Title</th>
+                                        <th class="p-3">Name</th>
+                                        <th class="p-3 text-right">Rtg</th>
+                                        <th class="p-3">Cat</th>
+                                        <th class="p-3 text-right">Pts</th>
+                                        <th class="p-3 text-right">BucT</th>
+                                        <th class="p-3 text-right">SB</th>
+                                        ${Array.from({ length: maxRounds }, (_, i) => `<th class="p-3 text-center">R${i + 1}</th>`).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${standings.map(s => `
+                                        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors ${s.rank <= 3 ? 'bg-amber-500/5' : ''}">
+                                            <td class="p-3 font-mono ${s.rank <= 3 ? 'text-amber-400 font-bold' : 'text-gray-500'}">${s.rank}</td>
+                                            <td class="p-3 font-mono text-gray-500">${s.sno}</td>
+                                            <td class="p-3"><span class="text-amber-400 font-bold text-xs">${s.title || ''}</span></td>
+                                            <td class="p-3 font-medium text-white cursor-pointer hover:text-amber-400" onclick="FideModals.playerCard('${tid}','${s.player_id}')">${s.name}</td>
+                                            <td class="p-3 text-right font-mono text-gray-400">${s.rating}</td>
+                                            <td class="p-3"><span class="text-[9px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-gray-400">${s.category}</span></td>
+                                            <td class="p-3 text-right font-bold text-accent-400">${s.points}</td>
+                                            <td class="p-3 text-right font-mono text-gray-400">${s.buchholz}</td>
+                                            <td class="p-3 text-right font-mono text-gray-400">${s.sonneborn_berger}</td>
+                                            ${(s.round_results || []).map(rr => {
+                                                const col = rr.color === 'W' ? '⬜' : '⬛';
+                                                const resChar = rr.result === '1' ? '1' : rr.result === '0' ? '0' : rr.result === '0.5' ? '½' : '*';
+                                                return `<td class="p-3 text-center font-mono text-xs">${resChar}${col}</td>`;
+                                            }).join('')}
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            },
+
+            async CrosstableTab(tid) {
+                const ct = await API.fideGetCrosstable(tid);
+                if (!ct.rows || ct.rows.length === 0) return Components.EmptyState('No data yet', 'Generate rounds and record results first');
+                const n = ct.rows.length;
+                return `
+                    <div class="glass-panel rounded-xl overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="text-xs border-collapse w-full">
+                                <thead class="text-[9px] text-gray-500 font-mono uppercase bg-black/20">
+                                    <tr>
+                                        <th class="p-2">#</th>
+                                        <th class="p-2 text-left">Name</th>
+                                        <th class="p-2 text-right">Rtg</th>
+                                        ${Array.from({ length: n }, (_, i) => `<th class="p-2 text-center">${i + 1}</th>`).join('')}
+                                        <th class="p-2 text-right">Pts</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${ct.rows.map(row => `
+                                        <tr class="border-b border-white/5 hover:bg-white/5">
+                                            <td class="p-2 font-mono text-gray-500">${row.ct_rank}</td>
+                                            <td class="p-2 text-white font-medium">${row.title ? `<span class="text-amber-400 mr-1">${row.title}</span>` : ''}${row.name}</td>
+                                            <td class="p-2 text-right font-mono text-gray-400">${row.rating}</td>
+                                            ${Array.from({ length: n }, (_, j) => {
+                                                const key = String(j + 1);
+                                                const val = row.results[key] || '';
+                                                const cls = val === 'X' ? 'bg-gray-800 text-gray-600' : val.startsWith('1') ? 'text-green-400' : (val.startsWith('0') && !val.startsWith('0.')) ? 'text-red-400' : 'text-gray-300';
+                                                return `<td class="p-2 text-center font-mono ${cls}">${val || ''}</td>`;
+                                            }).join('')}
+                                            <td class="p-2 text-right font-bold text-accent-400">${row.points}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>`;
+            },
+
+            async NormsTab(tid) {
+                const norms = await API.fideGetTitleNorms(tid);
+                if (norms.length === 0) return Components.EmptyState('No title norms achieved', 'Players need 5+ games and sufficient performance rating');
+                return `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${norms.map(n => `
+                            <div class="glass-panel p-6 rounded-xl border-l-4 border-l-amber-500">
+                                <div class="flex justify-between items-start mb-3">
+                                    <div>
+                                        <h4 class="font-display font-bold text-white">${n.name}</h4>
+                                        <p class="text-xs text-gray-500 font-mono">Rating: ${n.rating} • ${n.games_played} games</p>
+                                    </div>
+                                    <span class="text-2xl font-display font-bold text-amber-400">${n.performance_rating}</span>
+                                </div>
+                                <div class="flex gap-2">
+                                    ${n.norms_achieved.map(t => `<span class="px-2 py-1 rounded bg-amber-500/20 border border-amber-500/30 text-amber-400 text-xs font-bold">${t} Norm</span>`).join('')}
+                                </div>
+                                ${n.current_title ? `<p class="mt-2 text-xs text-gray-500">Current title: ${n.current_title}</p>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>`;
+            }
+        };
+
+        // ─── COMPONENTS ──────────────────────────────────────────────────────────────
         const Components = {
             EmptyState(title, sub = '') {
                 return `
@@ -550,41 +975,74 @@
                         </div>
                         <h4 class="text-white font-medium">${title}</h4>
                         ${sub ? `<p class="text-sm text-gray-500 mt-1">${sub}</p>` : ''}
-                    </div>
-                `;
+                    </div>`;
             },
+
             ErrorState(msg) {
                 return `
                     <div class="p-8 text-center">
                         <i class="ph-bold ph-warning-circle text-4xl text-red-500 mb-2"></i>
                         <p class="text-red-400 font-mono text-sm">${msg}</p>
-                    </div>
-                `;
+                    </div>`;
             },
+
+            UnifiedTournamentCard(t) {
+                const isFide = t.type === 'fide';
+                const badgeColor = isFide ? 'text-amber-400 bg-amber-400/10 border-amber-400/20' : 'text-blue-400 bg-blue-400/10 border-blue-400/20';
+                const icon = isFide ? 'ph-crown' : 'ph-trophy';
+                const typeLabel = isFide ? 'FIDE Swiss' : 'Standard';
+                const clickAction = isFide ? `Router.navigate('fide_detail', '${t.id}')` : `Router.navigate('tournament_detail', '${t.id}')`;
+                return `
+                    <div onclick="${clickAction}" class="glass-panel p-6 rounded-2xl group interactive cursor-pointer relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-4 opacity-50 group-hover:opacity-100 transition-opacity">
+                            <i class="ph-duotone ${icon} text-6xl text-white/5"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-start mb-4">
+                                <div class="w-12 h-12 rounded-xl bg-surface-500/10 border border-white/10 flex items-center justify-center text-white group-hover:scale-110 transition-transform duration-300">
+                                    <i class="ph-bold ${icon} text-xl"></i>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-mono border ${badgeColor}">${typeLabel}</span>
+                            </div>
+                            <h3 class="text-xl font-bold text-white mb-1 group-hover:text-accent-400 transition-colors truncate">${t.name}</h3>
+                            <p class="text-xs text-gray-500 font-mono mb-6">ID: ${t.short_id || t.id.substring(0, 8)}</p>
+                            <div class="flex items-center gap-4 text-xs text-gray-400">
+                                <span class="flex items-center gap-1.5">
+                                    <i class="ph-bold ph-calendar"></i>
+                                    ${new Date(t.created_at || Date.now()).toLocaleDateString()}
+                                </span>
+                                ${t.arbiter ? `<span class="flex items-center gap-1.5"><i class="ph-bold ph-user-circle"></i>${t.arbiter}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+            },
+
             TournamentCard(t) {
                 return `
                     <div onclick="Router.navigate('tournament_detail', '${t.id}')" class="glass-panel p-6 rounded-xl relative overflow-hidden group cursor-pointer interactive h-full flex flex-col">
                         <div class="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-accent-500/20 to-transparent rounded-bl-full -mr-4 -mt-4 transition-all group-hover:scale-110"></div>
-                        
                         <div class="flex justify-between items-start mb-4 relative z-10">
                             <div class="w-10 h-10 rounded bg-white/5 border border-white/10 flex items-center justify-center text-accent-400">
                                 <i class="ph-bold ph-trophy"></i>
                             </div>
                             <span class="text-[10px] font-mono border border-green-500/30 text-green-400 bg-green-500/10 px-2 py-1 rounded uppercase tracking-wider">Active</span>
                         </div>
-                        
                         <h3 class="font-display font-bold text-xl text-white mb-1 group-hover:text-accent-400 transition-colors">${t.name}</h3>
                         <p class="text-xs text-gray-500 font-mono mb-6">${t.short_id}</p>
-                        
                         <div class="mt-auto pt-4 border-t border-white/5 flex justify-between items-center text-xs text-gray-400">
                             <span>${new Date(t.created_at).toLocaleDateString()}</span>
                             <span class="group-hover:translate-x-1 transition-transform text-white"><i class="ph-bold ph-arrow-right"></i></span>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             },
+
             RoundBlock(r, data, idx) {
-                const typeLabel = r.round_type.replace('_', ' ').toUpperCase();
+                const matches = Array.isArray(data) ? data : (data.matches || []);
+                const typeLabel = r.round_type.replace(/_/g, ' ').toUpperCase();
+                const isPlayer = isPlayerRole();
+                const myPlayerId = isPlayer && State.currentUser ? State.currentUser.player_id : null;
+                const rows = matches.map((m, i) => Components.MatchRow(m, i + 1, myPlayerId, isPlayer)).join('');
+
                 return `
                     <div class="glass-panel rounded-xl overflow-hidden border-l-4 border-l-accent-500">
                         <div class="px-6 py-4 bg-white/5 border-b border-white/5 flex justify-between items-center">
@@ -592,175 +1050,287 @@
                                 <h4 class="font-bold text-white text-sm tracking-wide">ROUND ${r.ordinal}</h4>
                                 <span class="text-[10px] text-gray-500 font-mono uppercase">${typeLabel}</span>
                             </div>
-                            <span class="text-xs bg-black/30 px-2 py-1 rounded text-gray-400 border border-white/5">${data.matches.length} Matches</span>
+                            <span class="text-xs bg-black/30 px-2 py-1 rounded text-gray-400 border border-white/5">${matches.length} Match${matches.length !== 1 ? 'es' : ''}</span>
                         </div>
-                        <div class="divide-y divide-white/5">
-                            ${data.matches.map(m => Components.MatchRow(m)).join('')}
-                        </div>
-                    </div>
-                `;
+                        ${matches.length === 0
+                            ? '<div class="px-6 py-8 text-center text-gray-600 text-sm">No matches in this round.</div>'
+                            : `<table class="w-full border-collapse text-sm">
+                                <thead>
+                                    <tr class="bg-white/[0.03] border-b border-white/5">
+                                        <th class="px-4 py-3 text-left text-[10px] font-mono text-gray-500 uppercase tracking-widest w-12">Bd.</th>
+                                        <th class="px-4 py-3 text-left text-[10px] font-mono text-gray-500 uppercase tracking-widest">
+                                            <span class="inline-flex items-center gap-1.5">
+                                                <span class="w-2.5 h-2.5 rounded-full bg-white border border-gray-600 inline-block"></span>
+                                                White
+                                            </span>
+                                        </th>
+                                        <th class="px-4 py-3 text-center text-[10px] font-mono text-gray-500 uppercase tracking-widest w-28">Result</th>
+                                        <th class="px-4 py-3 text-left text-[10px] font-mono text-gray-500 uppercase tracking-widest">
+                                            <span class="inline-flex items-center gap-1.5">
+                                                <span class="w-2.5 h-2.5 rounded-full bg-gray-900 border border-gray-500 inline-block"></span>
+                                                Black
+                                            </span>
+                                        </th>
+                                        ${!isPlayer ? '<th class="px-4 py-3 w-24"></th>' : ''}
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-white/[0.04]">
+                                    ${rows}
+                                </tbody>
+                              </table>`
+                        }
+                    </div>`;
             },
-            MatchRow(m) {
-                const isComplete = m.status === 'completed' || m.status === 'bye';
-                const isDraw = m.status === 'draw';
-                
-                let badge = `<span class="text-[10px] uppercase font-bold tracking-wider text-yellow-500 bg-yellow-500/10 px-2 py-0.5 rounded border border-yellow-500/20">Pending</span>`;
-                if (isComplete) badge = `<span class="text-[10px] uppercase font-bold tracking-wider text-gray-500 bg-gray-500/10 px-2 py-0.5 rounded border border-gray-500/20">Done</span>`;
-                
-                const playersHtml = m.player_names.map((name, i) => {
-                    const isWinner = m.winner_names.includes(name);
-                    const isLoser = isComplete && !isWinner && !isDraw;
-                    const statusClass = isWinner ? 'text-green-400 border-green-500/30 bg-green-500/5' : 
-                                      isLoser ? 'text-gray-600 line-through opacity-50' : 'text-gray-300';
-                    
-                    return `
-                        <div class="flex-1 flex justify-between items-center px-3 py-2 rounded border border-white/5 bg-black/20 ${statusClass}">
-                            <span class="font-medium text-sm truncate">${name}</span>
-                            ${isWinner ? '<i class="ph-fill ph-crown text-green-400 text-xs"></i>' : ''}
-                        </div>
-                    `;
-                }).join('');
+
+            MatchRow(m, fallbackBoard, myPlayerId, isPlayer) {
+                const playerNames = m.player_names && m.player_names.length
+                    ? m.player_names
+                    : (m.players || []).map(p => p.name || p.id);
+                const winnerNames = m.winner_names || [];
+                const status = m.status || (m.auto_bye ? 'bye' : m.result ? (m.result === 'draw' ? 'draw' : 'completed') : 'pending');
+
+                const isComplete = status === 'completed' || status === 'bye';
+                const isDraw     = status === 'draw';
+                const isPending  = status === 'pending';
+                const boardNo    = m.board_no || fallbackBoard;
+
+                let whiteName = m.white_player;
+                let blackName = m.black_player;
+                let whiteId   = m.white_id || (m.player_ids && m.player_ids[0]);
+                let blackId   = m.black_id || (m.player_ids && m.player_ids[1]);
+
+                if (!whiteName && playerNames.length >= 2) whiteName = playerNames[0];
+                if (!blackName && playerNames.length >= 2) blackName = playerNames[1];
+
+                let resultCell  = '';
+                let resultClass = 'text-yellow-500 bg-yellow-500/10 border-yellow-500/20';
+
+                if (m.auto_bye || status === 'bye') {
+                    resultCell  = '<span class="text-purple-400">½ BYE</span>';
+                    resultClass = 'text-purple-400 bg-purple-500/10 border-purple-500/20';
+                } else if (isDraw) {
+                    resultCell  = '<span class="font-bold">½ – ½</span>';
+                    resultClass = 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+                } else if (isComplete) {
+                    const whiteWon = winnerNames.includes(whiteName);
+                    resultCell  = whiteWon
+                        ? '<span class="font-bold text-green-400">1</span><span class="text-gray-500 mx-0.5">–</span><span class="font-bold text-gray-500">0</span>'
+                        : '<span class="font-bold text-gray-500">0</span><span class="text-gray-500 mx-0.5">–</span><span class="font-bold text-green-400">1</span>';
+                    resultClass = 'text-gray-300 bg-white/5 border-white/10';
+                } else {
+                    resultCell = '<span class="text-[10px] font-mono tracking-widest">vs</span>';
+                }
+
+                const myMatch    = myPlayerId && (whiteId === myPlayerId || blackId === myPlayerId);
+                const rowBg      = myMatch ? 'bg-accent-500/5 hover:bg-accent-500/10' : 'hover:bg-white/[0.02]';
+                const whiteWinner = isComplete && winnerNames.includes(whiteName);
+                const blackWinner = isComplete && winnerNames.includes(blackName);
+                const whiteClass  = whiteWinner ? 'text-green-400 font-semibold' : (isComplete && !isDraw && !whiteWinner ? 'text-gray-500 line-through' : 'text-gray-200');
+                const blackClass  = blackWinner ? 'text-green-400 font-semibold' : (isComplete && !isDraw && !blackWinner ? 'text-gray-500 line-through' : 'text-gray-200');
+
+                // ← FIX: "Enter" button hidden entirely for players
+                const reportBtn = (!isPlayer && isPending && !m.auto_bye)
+                    ? `<td class="px-4 py-3 text-right">
+                           <button onclick='Modals.reportMatch(${JSON.stringify(m).replace(/'/g, "&#39;")})' class="text-[10px] text-accent-400 hover:text-white border border-accent-500/30 hover:bg-accent-500 px-2 py-1 rounded transition-all font-mono uppercase tracking-wide">
+                               Enter
+                           </button>
+                       </td>`
+                    : (isPlayer ? '' : '<td></td>');
 
                 return `
-                    <div class="px-6 py-4 hover:bg-white/[0.02] transition-colors group">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="text-[10px] font-mono text-gray-600">MATCH ID: ${m.id.substring(0,8)}</span>
-                            ${badge}
-                        </div>
-                        <div class="flex flex-col sm:flex-row gap-2">
-                            ${playersHtml}
-                        </div>
-                        ${(!isComplete && !m.auto_bye) ? `
-                            <div class="mt-3 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                                <button onclick='Modals.reportMatch(${JSON.stringify(m).replace(/'/g, "&#39;")})' class="text-xs text-accent-400 hover:text-white border border-accent-500/30 hover:bg-accent-500 px-3 py-1.5 rounded transition-all">
-                                    Report Result
-                                </button>
-                            </div>
-                        ` : ''}
-                    </div>
-                `;
+                    <tr class="${rowBg} transition-colors ${myMatch ? 'border-l-2 border-l-accent-500' : ''}">
+                        <td class="px-4 py-3 font-mono text-gray-600 text-xs text-center">${boardNo}</td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-white border border-gray-600 flex-shrink-0"></span>
+                                <span class="${whiteClass} text-sm">${whiteName || '—'}</span>
+                                ${whiteWinner ? '<i class="ph-fill ph-crown text-green-400 text-xs"></i>' : ''}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="inline-flex items-center justify-center gap-0.5 text-sm font-bold px-3 py-1 rounded border ${resultClass}">
+                                ${resultCell}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="inline-flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-gray-900 border border-gray-500 flex-shrink-0"></span>
+                                <span class="${blackClass} text-sm">${blackName || '—'}</span>
+                                ${blackWinner ? '<i class="ph-fill ph-crown text-green-400 text-xs"></i>' : ''}
+                            </span>
+                        </td>
+                        ${reportBtn}
+                    </tr>`;
             }
         };
 
-        // --- MODALS & FORMS ---
+        // ─── MODALS ──────────────────────────────────────────────────────────────────
         const Modals = {
             open(title, html) {
                 const overlay = document.getElementById('modal-overlay');
                 const content = document.getElementById('modal-content');
-                
                 content.innerHTML = `
                     <div class="px-6 py-4 border-b border-white/10 flex justify-between items-center bg-white/5">
                         <h3 class="font-display font-bold text-lg text-white">${title}</h3>
                         <button onclick="Modals.close()" class="text-gray-500 hover:text-white"><i class="ph-bold ph-x text-lg"></i></button>
                     </div>
-                    <div class="p-6 bg-[#0a0a0a]">
-                        ${html}
-                    </div>
-                `;
-                
+                    <div class="p-6 bg-[#0a0a0a]">${html}</div>`;
                 overlay.classList.remove('hidden');
                 overlay.classList.add('flex');
-                
                 requestAnimationFrame(() => {
                     overlay.classList.remove('opacity-0');
                     content.classList.remove('opacity-0', 'scale-95');
                     content.classList.add('scale-100');
                 });
             },
+
             close() {
                 const overlay = document.getElementById('modal-overlay');
                 const content = document.getElementById('modal-content');
-                
                 overlay.classList.add('opacity-0');
                 content.classList.add('opacity-0', 'scale-95');
                 content.classList.remove('scale-100');
-                
-                setTimeout(() => {
-                    overlay.classList.add('hidden');
-                }, 300);
+                setTimeout(() => overlay.classList.add('hidden'), 300);
             },
-            
+
             async showSettings() {
-                const calculators = await API.getCalculators();
-                const strategies = await API.getStrategies();
-                
+                const [calculators, strategies] = await Promise.all([API.getCalculators(), API.getStrategies()]);
+                const isAdmin = State.currentUser && State.currentUser.role === 'admin';
                 this.open('System Settings', `
                     <div class="space-y-6">
                         <div>
                             <h4 class="font-display font-bold text-white mb-3 flex items-center gap-2">
-                                <i class="ph-bold ph-calculator text-accent-400"></i>
-                                Points Calculators
+                                <i class="ph-bold ph-calculator text-accent-400"></i> Points Calculators
                             </h4>
                             <p class="text-xs text-gray-500 mb-3">Available scoring systems for tournaments</p>
                             <div class="grid grid-cols-2 gap-2">
-                                ${calculators.map(c => `
-                                    <div class="glass-panel p-3 rounded-lg border border-white/5 hover:border-accent-500/30 transition-colors">
-                                        <span class="text-sm text-white font-mono">${c}</span>
-                                    </div>
-                                `).join('')}
+                                ${calculators.map(c => `<div class="glass-panel p-3 rounded-lg border border-white/5 hover:border-accent-500/30 transition-colors"><span class="text-sm text-white font-mono">${c}</span></div>`).join('')}
                             </div>
                         </div>
-                        
                         <div class="border-t border-white/10 pt-6">
                             <h4 class="font-display font-bold text-white mb-3 flex items-center gap-2">
-                                <i class="ph-bold ph-strategy text-accent-400"></i>
-                                Matchmaking Strategies
+                                <i class="ph-bold ph-strategy text-accent-400"></i> Matchmaking Strategies
                             </h4>
                             <p class="text-xs text-gray-500 mb-3">Available tournament formats</p>
                             <div class="grid grid-cols-2 gap-2">
-                                ${strategies.map(s => `
-                                    <div class="glass-panel p-3 rounded-lg border border-white/5 hover:border-accent-500/30 transition-colors">
-                                        <span class="text-sm text-white font-mono">${s}</span>
-                                    </div>
-                                `).join('')}
+                                ${strategies.map(s => `<div class="glass-panel p-3 rounded-lg border border-white/5 hover:border-accent-500/30 transition-colors"><span class="text-sm text-white font-mono">${s}</span></div>`).join('')}
                             </div>
                         </div>
-                        
+                        ${isAdmin ? `
                         <div class="border-t border-white/10 pt-6">
                             <h4 class="font-display font-bold text-white mb-3 flex items-center gap-2">
-                                <i class="ph-bold ph-info text-accent-400"></i>
-                                System Information
+                                <i class="ph-bold ph-lock text-accent-400"></i> Change Password
+                            </h4>
+                            <div class="space-y-3">
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Current Password</label>
+                                    <input type="password" id="chpwd-current" class="input-dark w-full px-4 py-2.5 rounded-lg text-sm" placeholder="Enter current password">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">New Password</label>
+                                    <input type="password" id="chpwd-new" class="input-dark w-full px-4 py-2.5 rounded-lg text-sm" placeholder="Min. 8 characters">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Confirm New Password</label>
+                                    <input type="password" id="chpwd-confirm" class="input-dark w-full px-4 py-2.5 rounded-lg text-sm" placeholder="Repeat new password">
+                                </div>
+                                <button onclick="Handlers.changePassword()" class="btn-neon w-full py-2.5 rounded-lg text-sm font-medium">
+                                    <i class="ph-bold ph-lock-key mr-1"></i> Update Password
+                                </button>
+                            </div>
+                        </div>` : ''}
+                        <div class="border-t border-white/10 pt-6">
+                            <h4 class="font-display font-bold text-white mb-3 flex items-center gap-2">
+                                <i class="ph-bold ph-info text-accent-400"></i> System Information
                             </h4>
                             <div class="space-y-2 text-sm">
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">Version</span>
-                                    <span class="text-white font-mono">v1.0.0</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">Engine</span>
-                                    <span class="text-white font-mono">NEXUS</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-gray-500">Status</span>
-                                    <span class="text-green-400 font-mono">● Online</span>
-                                </div>
+                                <div class="flex justify-between"><span class="text-gray-500">Version</span><span class="text-white font-mono">v1.0.0</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Engine</span><span class="text-white font-mono">NEXUS</span></div>
+                                <div class="flex justify-between"><span class="text-gray-500">Status</span><span class="text-green-400 font-mono">● Online</span></div>
                             </div>
                         </div>
-                        
                         <div class="flex justify-end gap-3 pt-4">
                             <button onclick="Handlers.reloadPlugins(); Modals.close();" class="btn-ghost px-4 py-2 rounded-lg text-sm">
                                 <i class="ph-bold ph-arrows-clockwise mr-1"></i> Reload Plugins
                             </button>
                             <button onclick="Modals.close()" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Close</button>
                         </div>
-                    </div>
-                `);
+                    </div>`);
             },
-            
+
             createTournament() {
                 this.open('Create Tournament', `
                     <div class="space-y-4">
                         <div>
-                            <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Tournament Name</label>
-                            <input id="inp-tname" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="e.g. Summer Cup 2024">
+                            <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wide">Tournament Name</label>
+                            <input type="text" id="new-tournament-name" class="input-dark w-full px-4 py-3 rounded-xl" placeholder="e.g. Summer Championship 2024">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wide">Tournament Type</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="tournament-type" value="standard" class="peer sr-only" checked onchange="document.getElementById('fide-fields').classList.add('hidden')">
+                                    <div class="glass-panel p-4 rounded-xl text-center peer-checked:border-accent-500 peer-checked:bg-accent-500/10 transition-all">
+                                        <i class="ph-bold ph-trophy text-2xl mb-2 text-gray-400 peer-checked:text-accent-400"></i>
+                                        <div class="text-sm font-bold text-white">Standard</div>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="tournament-type" value="fide" class="peer sr-only" onchange="document.getElementById('fide-fields').classList.remove('hidden')">
+                                    <div class="glass-panel p-4 rounded-xl text-center peer-checked:border-amber-500 peer-checked:bg-amber-500/10 transition-all">
+                                        <i class="ph-bold ph-crown text-2xl mb-2 text-gray-400 peer-checked:text-amber-400"></i>
+                                        <div class="text-sm font-bold text-white">FIDE Swiss</div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <div id="fide-fields" class="hidden space-y-4 pt-2 border-t border-white/5 animate-enter">
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wide">Date</label>
+                                    <input type="date" id="new-fide-date" class="input-dark w-full px-4 py-3 rounded-xl">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wide">Max Rounds</label>
+                                    <input type="number" id="new-fide-rounds" value="7" min="1" max="30" class="input-dark w-full px-4 py-3 rounded-xl">
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wide">Venue</label>
+                                    <input type="text" id="new-fide-venue" class="input-dark w-full px-4 py-3 rounded-xl" placeholder="Location">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wide">Time Control</label>
+                                    <select id="new-fide-time" class="input-dark w-full px-4 py-3 rounded-xl appearance-none">
+                                        <option value="Standard" class="bg-gray-900">Standard</option>
+                                        <option value="Rapid" class="bg-gray-900">Rapid</option>
+                                        <option value="Blitz" class="bg-gray-900">Blitz</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wide">Arbiter</label>
+                                    <input type="text" id="new-tournament-arbiter" class="input-dark w-full px-4 py-3 rounded-xl" placeholder="Chief Arbiter name">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wide">Chief Arbiter</label>
+                                    <input type="text" id="new-fide-chief-arbiter" class="input-dark w-full px-4 py-3 rounded-xl" placeholder="Optional">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-2 uppercase tracking-wide">Categories (comma-separated)</label>
+                                <input type="text" id="new-fide-cats" class="input-dark w-full px-4 py-3 rounded-xl" value="Open" placeholder="e.g. U11,U13,U15,Open">
+                            </div>
                         </div>
                         <div class="flex justify-end gap-3 pt-4">
                             <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
-                            <button onclick="Handlers.createTournament()" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Create Tournament</button>
+                            <button onclick="Handlers.submitCreateTournament()" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Create Tournament</button>
                         </div>
-                    </div>
-                `);
+                    </div>`);
             },
+
             addPlayer() {
                 this.open('Add Player', `
                     <div class="space-y-4">
@@ -768,25 +1338,83 @@
                             <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Player Name</label>
                             <input id="inp-pname" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="e.g. John Doe">
                         </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Rating</label>
+                                <input id="inp-prating" type="number" value="0" class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Federation</label>
+                                <input id="inp-pfed" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="IND" maxlength="3">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Title</label>
+                                <select id="inp-ptitle" class="input-dark w-full px-4 py-3 rounded-lg text-sm appearance-none">
+                                    <option value="" class="bg-gray-900">None</option>
+                                    <option value="GM" class="bg-gray-900">GM</option>
+                                    <option value="IM" class="bg-gray-900">IM</option>
+                                    <option value="FM" class="bg-gray-900">FM</option>
+                                    <option value="CM" class="bg-gray-900">CM</option>
+                                    <option value="WGM" class="bg-gray-900">WGM</option>
+                                    <option value="WIM" class="bg-gray-900">WIM</option>
+                                    <option value="WFM" class="bg-gray-900">WFM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Club</label>
+                                <input id="inp-pclub" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="Club Name">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">FIDE ID</label>
+                                <input id="inp-pfid" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="Optional">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Date of Birth</label>
+                            <input id="inp-pdob" type="date" class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                        </div>
                         <div class="flex justify-end gap-3 pt-4">
                             <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
                             <button onclick="Handlers.createPlayer()" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Add Player</button>
                         </div>
-                    </div>
-                `);
+                    </div>`);
             },
-            async createRound(tId) {
+
+            async createRound(tId, isFide = false) {
+                if (isFide) {
+                    this.open('♚ Generate FIDE Round', `
+                        <div class="space-y-5">
+                            <div class="glass-panel p-4 rounded-xl border border-amber-500/20 bg-amber-500/5">
+                                <div class="flex items-start gap-3">
+                                    <i class="ph-bold ph-crown text-amber-400 text-xl mt-0.5"></i>
+                                    <div>
+                                        <p class="text-sm font-semibold text-amber-300 mb-1">FIDE Swiss Pairing Engine</p>
+                                        <p class="text-xs text-gray-400">This is a FIDE Chess tournament. Rounds are automatically generated using the <span class="text-amber-400 font-mono">chess_fide_swiss</span> strategy with official FIDE pairing rules (Dutch system). No other strategy is permitted.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex justify-end gap-3 pt-2">
+                                <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
+                                <button onclick="FideHandlers.createRound('${tId}')" class="px-6 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-amber-600 to-yellow-500 hover:from-amber-700 hover:to-yellow-600 transition-all">
+                                    <i class="ph-bold ph-crown mr-1"></i> Generate Round
+                                </button>
+                            </div>
+                        </div>`);
+                    return;
+                }
+
                 const strategies = await API.getStrategies();
-                const options = strategies.map(s => `<option value="${s}" class="bg-gray-900">${s.replace('_', ' ').toUpperCase()}</option>`).join('');
-                
+                const standardStrategies = strategies.filter(s => s !== 'chess_fide_swiss');
+                const options = standardStrategies.map(s => `<option value="${s}" class="bg-gray-900">${s.replace(/_/g, ' ').toUpperCase()}</option>`).join('');
+
                 this.open('Create Round', `
                     <div class="space-y-5">
                         <div>
                             <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Strategy</label>
                             <div class="relative">
-                                <select id="inp-strat" class="input-dark w-full px-4 py-3 rounded-lg text-sm appearance-none cursor-pointer">
-                                    ${options}
-                                </select>
+                                <select id="inp-strat" class="input-dark w-full px-4 py-3 rounded-lg text-sm appearance-none cursor-pointer">${options}</select>
                                 <i class="ph-bold ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
                             </div>
                         </div>
@@ -798,9 +1426,9 @@
                             <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
                             <button onclick="Handlers.createRound('${tId}')" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Create Round</button>
                         </div>
-                    </div>
-                `);
+                    </div>`);
             },
+
             async addPlayersToTournament(tId) {
                 const all = await API.getPlayers();
                 const t = await API.getTournament(tId);
@@ -808,148 +1436,577 @@
                 const available = all.filter(p => !currentIds.includes(p.id));
 
                 this.open('Add Players to Tournament', `
-                    <div class="flex flex-col h-[400px]">
-                        <p class="text-xs text-gray-400 mb-4 font-mono">SELECT PLAYERS TO ADD</p>
-                        <div class="flex-1 overflow-y-auto border border-white/10 rounded-lg bg-black/20 p-2 space-y-1" id="roster-select">
-                            ${available.length === 0 ? '<div class="p-4 text-center text-gray-600 text-sm">No available players.</div>' : ''}
-                            ${available.map(p => `
-                                <label class="flex items-center p-3 hover:bg-white/5 rounded cursor-pointer transition-colors group">
-                                    <input type="checkbox" value="${p.id}" class="w-4 h-4 rounded border-gray-600 text-accent-500 focus:ring-accent-500 bg-gray-800">
-                                    <span class="ml-3 text-sm text-gray-300 group-hover:text-white">${p.name}</span>
-                                </label>
-                            `).join('')}
+                    <div class="space-y-4">
+                        <div class="flex gap-2">
+                            <button id="tab-import" onclick="Modals.switchAddPlayersTab('import')" class="px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wide border border-accent-500/30 text-accent-400 bg-accent-500/10">Import</button>
+                            <button id="tab-quickadd" onclick="Modals.switchAddPlayersTab('quickadd')" class="px-3 py-2 rounded-lg text-xs font-bold uppercase tracking-wide border border-white/10 text-gray-400 hover:text-white hover:border-accent-500/40 transition-colors">Quickadd</button>
                         </div>
-                        <div class="flex justify-end gap-3 pt-4">
-                            <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
-                            <button onclick="Handlers.addToRoster('${tId}')" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Add Selected</button>
+                        <div id="add-players-import" class="space-y-4">
+                            <p class="text-xs text-gray-400 font-mono">SELECT PLAYERS TO IMPORT</p>
+                            <div class="relative">
+                                <i class="ph-bold ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                                <input type="text" id="import-player-search" placeholder="Search by name or DOB..." class="input-dark w-full pl-10 pr-4 py-2.5 rounded-lg text-sm" onkeyup="Handlers.searchImportPlayers(this.value)">
+                            </div>
+                            <div class="h-[320px] overflow-y-auto border border-white/10 rounded-lg bg-black/20 p-2 space-y-1" id="roster-select">
+                                ${available.length === 0 ? '<div class="p-4 text-center text-gray-600 text-sm">No available players.</div>' : ''}
+                                ${available.map(p => `
+                                    <label class="flex items-center p-3 hover:bg-white/5 rounded cursor-pointer transition-colors group import-player-item" data-name="${(p.name || '').toLowerCase()}" data-dob="${(p.date_of_birth || '').toLowerCase()}">
+                                        <input type="checkbox" value="${p.id}" class="w-4 h-4 rounded border-gray-600 text-accent-500 focus:ring-accent-500 bg-gray-800">
+                                        <span class="ml-3 text-sm text-gray-300 group-hover:text-white">${p.name}</span>
+                                        <span class="ml-auto text-[10px] text-gray-500 font-mono">${p.date_of_birth || ''}</span>
+                                    </label>
+                                `).join('')}
+                            </div>
+                            <div class="flex justify-end gap-3">
+                                <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
+                                <button onclick="Handlers.addToRoster('${tId}')" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Import Selected</button>
+                            </div>
                         </div>
-                    </div>
-                `);
+                        <div id="add-players-quickadd" class="space-y-4 hidden">
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Player Name</label>
+                                <input id="inp-quickadd-name" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="e.g. John Doe">
+                            </div>
+                            <div class="grid grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Rating</label>
+                                    <input id="inp-quickadd-rating" type="number" value="0" class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Federation</label>
+                                    <input id="inp-quickadd-fed" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="IND" maxlength="3">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Title</label>
+                                    <select id="inp-quickadd-title" class="input-dark w-full px-4 py-3 rounded-lg text-sm appearance-none">
+                                        <option value="" class="bg-gray-900">None</option>
+                                        <option value="GM" class="bg-gray-900">GM</option>
+                                        <option value="IM" class="bg-gray-900">IM</option>
+                                        <option value="FM" class="bg-gray-900">FM</option>
+                                        <option value="CM" class="bg-gray-900">CM</option>
+                                        <option value="WGM" class="bg-gray-900">WGM</option>
+                                        <option value="WIM" class="bg-gray-900">WIM</option>
+                                        <option value="WFM" class="bg-gray-900">WFM</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Club</label>
+                                    <input id="inp-quickadd-club" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="Club Name">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">FIDE ID</label>
+                                    <input id="inp-quickadd-fid" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="Optional">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Date of Birth</label>
+                                <input id="inp-quickadd-dob" type="date" class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                            </div>
+                            <div class="flex justify-end gap-3">
+                                <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
+                                <button onclick="Handlers.quickAddToTournament('${tId}')" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Quickadd</button>
+                            </div>
+                        </div>
+                    </div>`);
             },
-            reportMatch(m) {
-                const isDuel = m.players_per_match === 2;
-                
-                if (isDuel) {
-                    this.open('Record Match Result', `
-                        <p class="text-center text-gray-400 text-xs mb-6 font-mono">SELECT WINNER</p>
-                        <div class="grid grid-cols-3 gap-4">
-                            <button onclick="Handlers.submitWin('${m.id}', '${m.player_ids[0]}')" class="group p-4 rounded-xl border border-white/10 bg-gradient-to-br from-blue-900/20 to-transparent hover:from-blue-600/40 transition-all text-center">
-                                <span class="block font-bold text-white group-hover:scale-110 transition-transform">${m.player_names[0]}</span>
-                                <span class="text-[10px] text-blue-400 mt-1">WIN</span>
-                            </button>
-                            
-                            <button onclick="Handlers.submitDraw('${m.id}')" class="group p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all text-center flex flex-col justify-center items-center">
-                                <i class="ph-bold ph-scales text-xl text-gray-400 mb-1 group-hover:text-white"></i>
-                                <span class="text-[10px] text-gray-500">DRAW</span>
-                            </button>
 
-                            <button onclick="Handlers.submitWin('${m.id}', '${m.player_ids[1]}')" class="group p-4 rounded-xl border border-white/10 bg-gradient-to-br from-blue-900/20 to-transparent hover:from-blue-600/40 transition-all text-center">
-                                <span class="block font-bold text-white group-hover:scale-110 transition-transform">${m.player_names[1]}</span>
-                                <span class="text-[10px] text-blue-400 mt-1">WIN</span>
+            switchAddPlayersTab(tab) {
+                const importPanel  = document.getElementById('add-players-import');
+                const quickaddPanel = document.getElementById('add-players-quickadd');
+                const importBtn    = document.getElementById('tab-import');
+                const quickaddBtn  = document.getElementById('tab-quickadd');
+                if (!importPanel || !quickaddPanel || !importBtn || !quickaddBtn) return;
+
+                const setActive = (btn, active) => {
+                    btn.classList.toggle('bg-accent-500/10',    active);
+                    btn.classList.toggle('text-accent-400',     active);
+                    btn.classList.toggle('border-accent-500/30',active);
+                    btn.classList.toggle('text-gray-400',      !active);
+                    btn.classList.toggle('border-white/10',    !active);
+                };
+                const isQuickadd = tab === 'quickadd';
+                importPanel.classList.toggle('hidden',  isQuickadd);
+                quickaddPanel.classList.toggle('hidden',!isQuickadd);
+                setActive(importBtn,  !isQuickadd);
+                setActive(quickaddBtn, isQuickadd);
+            },
+
+            reportMatch(m) {
+                const isDuel    = (m.players_per_match === 2) || (m.player_ids && m.player_ids.length === 2);
+                const whiteName = m.white_player || (m.player_names && m.player_names[0]) || '?';
+                const blackName = m.black_player || (m.player_names && m.player_names[1]) || '?';
+                const whiteId   = m.white_id || (m.player_ids && m.player_ids[0]);
+                const blackId   = m.black_id || (m.player_ids && m.player_ids[1]);
+                const boardNo   = m.board_no || '';
+
+                if (isDuel) {
+                    this.open(`Board ${boardNo} — Enter Result`, `
+                        <div class="flex items-center justify-between mb-6 px-2">
+                            <span class="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Select Result</span>
+                        </div>
+                        <div class="grid grid-cols-3 gap-3">
+                            <button onclick="Handlers.submitWin('${m.id}', '${whiteId}')"
+                                class="group p-4 rounded-xl border border-white/10 bg-gradient-to-b from-white/5 to-transparent hover:from-white/15 hover:border-white/30 transition-all text-center">
+                                <div class="w-8 h-8 rounded-full bg-white border-2 border-gray-400 mx-auto mb-2"></div>
+                                <span class="block font-bold text-white text-sm group-hover:text-white truncate">${whiteName}</span>
+                                <span class="text-[10px] text-gray-400 mt-1 font-mono">1 – 0</span>
+                            </button>
+                            <button onclick="Handlers.submitDraw('${m.id}')"
+                                class="group p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 hover:border-blue-500/30 transition-all text-center flex flex-col justify-center items-center">
+                                <div class="flex gap-1 mb-2">
+                                    <span class="w-4 h-4 rounded-full bg-white border border-gray-400"></span>
+                                    <span class="w-4 h-4 rounded-full bg-gray-900 border border-gray-500"></span>
+                                </div>
+                                <span class="font-bold text-blue-400 text-sm">½ – ½</span>
+                                <span class="text-[10px] text-gray-500 mt-1 font-mono">Draw</span>
+                            </button>
+                            <button onclick="Handlers.submitWin('${m.id}', '${blackId}')"
+                                class="group p-4 rounded-xl border border-white/10 bg-gradient-to-b from-gray-800/40 to-transparent hover:from-gray-700/60 hover:border-gray-500/50 transition-all text-center">
+                                <div class="w-8 h-8 rounded-full bg-gray-900 border-2 border-gray-500 mx-auto mb-2"></div>
+                                <span class="block font-bold text-white text-sm group-hover:text-white truncate">${blackName}</span>
+                                <span class="text-[10px] text-gray-400 mt-1 font-mono">0 – 1</span>
                             </button>
                         </div>
-                    `);
+                        <div class="mt-4 pt-4 border-t border-white/5 flex justify-between text-[10px] font-mono text-gray-600 uppercase">
+                            <span>White: ${whiteName}</span>
+                            <span>Black: ${blackName}</span>
+                        </div>`);
                 } else {
                     this.open('Record Rankings', `
                         <p class="text-gray-400 text-xs mb-4 font-mono">ASSIGN FINAL POSITIONS (1 = 1ST PLACE)</p>
                         <div class="space-y-3">
-                            ${m.player_names.map((n, i) => `
+                            ${(m.player_names || []).map((n, i) => `
                                 <div class="flex items-center justify-between p-3 rounded bg-white/5 border border-white/5">
                                     <span class="text-sm font-medium text-gray-200">${n}</span>
                                     <input type="number" id="rank-${m.player_ids[i]}" class="input-dark w-16 text-center py-1 rounded" min="1" placeholder="#">
                                 </div>
                             `).join('')}
                         </div>
-                        <button onclick="Handlers.submitFFA('${m.id}', ${JSON.stringify(m.player_ids).replace(/"/g, '&quot;')})" class="btn-neon w-full mt-6 py-3 rounded-lg font-bold text-sm">Submit Rankings</button>
-                    `);
+                        <button onclick="Handlers.submitFFA('${m.id}', ${JSON.stringify(m.player_ids).replace(/"/g, '&quot;')})" class="btn-neon w-full mt-6 py-3 rounded-lg font-bold text-sm">Submit Rankings</button>`);
                 }
             }
         };
 
-        // --- ACTION HANDLERS ---
+        // ─── HANDLERS ────────────────────────────────────────────────────────────────
         const Handlers = {
             async createPlayer() {
-                const name = document.getElementById('inp-pname').value;
-                if(!name) return Toast.show('Name required', 'error');
-                await API.createPlayer(name);
+                const name         = document.getElementById('inp-pname').value;
+                const rating       = parseInt(document.getElementById('inp-prating').value) || 0;
+                const federation   = document.getElementById('inp-pfed').value;
+                const title        = document.getElementById('inp-ptitle').value;
+                const club         = document.getElementById('inp-pclub').value;
+                const fide_id      = document.getElementById('inp-pfid').value;
+                const date_of_birth = document.getElementById('inp-pdob').value;
+                if (!name) return Toast.show('Name required', 'error');
+                await API.createPlayer({ name, date_of_birth, rating, federation: federation ? federation.toUpperCase() : '', title, club, fide_id });
                 Modals.close();
                 Toast.show('Player registered successfully');
                 Router.navigate('players');
             },
-            async createTournament() {
-                const name = document.getElementById('inp-tname').value;
-                if(!name) return Toast.show('Name required', 'error');
-                const t = await API.createTournament(name);
-                Modals.close();
-                Toast.show('Tournament initialized');
-                Router.navigate('tournament_detail', t.id);
+
+            async submitCreateTournament() {
+                const name = document.getElementById('new-tournament-name').value;
+                const type = document.querySelector('input[name="tournament-type"]:checked').value;
+                if (!name) return Toast.show('Please enter a tournament name', 'error');
+                try {
+                    if (type === 'fide') {
+                        const tournament_date = document.getElementById('new-fide-date').value;
+                        if (!tournament_date) return Toast.show('Tournament date required', 'error');
+                        const cats = document.getElementById('new-fide-cats').value.split(',').map(c => c.trim()).filter(Boolean);
+                        await API.fideCreateTournament({
+                            name,
+                            arbiter:        document.getElementById('new-tournament-arbiter').value,
+                            chief_arbiter:  document.getElementById('new-fide-chief-arbiter').value,
+                            time_control:   document.getElementById('new-fide-time').value,
+                            tournament_date,
+                            max_rounds:     parseInt(document.getElementById('new-fide-rounds').value) || 7,
+                            venue:          document.getElementById('new-fide-venue').value,
+                            categories:     cats.length ? cats : ['Open']
+                        });
+                        Toast.show('FIDE Tournament created successfully', 'success');
+                    } else {
+                        await API.createTournament(name);
+                        Toast.show('Tournament created successfully', 'success');
+                    }
+                    Modals.close();
+                    Router.navigate('tournaments');
+                } catch (e) { Toast.show(e.message, 'error'); }
             },
+
             async addToRoster(tId) {
                 const inputs = document.querySelectorAll('#roster-select input:checked');
                 const ids = Array.from(inputs).map(i => i.value);
-                if(ids.length === 0) return Toast.show('No selection', 'error');
+                if (ids.length === 0) return Toast.show('No selection', 'error');
                 await API.addPlayers(tId, ids);
                 Modals.close();
                 Router.navigate('tournament_detail', tId);
             },
-            async createRound(tId) {
-                const strat = document.getElementById('inp-strat').value;
-                const ppm = document.getElementById('inp-ppm').value;
-                await API.createRound(tId, strat, parseInt(ppm));
+
+            async quickAddToTournament(tId) {
+                const name         = document.getElementById('inp-quickadd-name').value;
+                const rating       = parseInt(document.getElementById('inp-quickadd-rating').value) || 0;
+                const federation   = document.getElementById('inp-quickadd-fed').value;
+                const title        = document.getElementById('inp-quickadd-title').value;
+                const club         = document.getElementById('inp-quickadd-club').value;
+                const fide_id      = document.getElementById('inp-quickadd-fid').value;
+                const date_of_birth = document.getElementById('inp-quickadd-dob').value;
+                if (!name)          return Toast.show('Name required', 'error');
+                if (!date_of_birth) return Toast.show('Date of birth required', 'error');
+                const player = await API.createPlayer({ name, date_of_birth, rating, federation: federation ? federation.toUpperCase() : '', title, club, fide_id });
+                await API.addPlayers(tId, [player.id]);
                 Modals.close();
+                Toast.show('Player added to tournament', 'success');
                 Router.navigate('tournament_detail', tId);
             },
+
+            async createRound(tId, force = false) {
+                const strat = document.getElementById('inp-strat').value;
+                const ppm   = document.getElementById('inp-ppm').value;
+                try {
+                    await API.createRound(tId, strat, parseInt(ppm), force);
+                    Modals.close();
+                    Router.navigate('tournament_detail', tId);
+                    Toast.show('Round generated successfully');
+                } catch (e) {
+                    if (e.code === 'PENDING_MATCHES') {
+                        if (confirm('Previous round has pending matches. Force create new round?'))
+                            await Handlers.createRound(tId, true);
+                    } else {
+                        Toast.show(e.message, 'error');
+                    }
+                }
+            },
+
             async submitWin(mId, pId) {
-                await API.recordResult(mId, { result_type: 'win', winner_id: pId });
+                await API.recordResult(mId, { result: 'win', winner_ids: [pId] });
                 Modals.close();
                 Router.navigate('tournament_detail', State.activeTournament.id);
             },
+
             async submitDraw(mId) {
-                await API.recordResult(mId, { result_type: 'draw' });
+                await API.recordResult(mId, { result: 'draw' });
                 Modals.close();
                 Router.navigate('tournament_detail', State.activeTournament.id);
             },
+
             async submitFFA(mId, pIds) {
                 const rankings = {};
-                for(const pid of pIds) {
+                for (const pid of pIds) {
                     const r = document.getElementById(`rank-${pid}`).value;
-                    if(!r) return Toast.show('All ranks required', 'error');
+                    if (!r) return Toast.show('All ranks required', 'error');
                     rankings[pid] = parseInt(r);
                 }
-                await API.recordResult(mId, { result_type: 'rankings', rankings });
+                const winners = Object.entries(rankings).filter(([, rank]) => rank === 1).map(([pid]) => pid);
+                await API.recordResult(mId, { result: 'rankings', winner_ids: winners, rankings });
                 Modals.close();
                 Router.navigate('tournament_detail', State.activeTournament.id);
             },
+
+            async changePassword() {
+                const current = document.getElementById('chpwd-current').value;
+                const newPwd  = document.getElementById('chpwd-new').value;
+                const confirm = document.getElementById('chpwd-confirm').value;
+                if (!current || !newPwd || !confirm) return Toast.show('All fields are required', 'error');
+                if (newPwd !== confirm)               return Toast.show('New passwords do not match', 'error');
+                if (newPwd.length < 8)                return Toast.show('New password must be at least 8 characters', 'error');
+                try {
+                    await API.changePassword({ current_password: current, new_password: newPwd });
+                    Modals.close();
+                    Toast.show('Password changed successfully');
+                } catch (e) { /* Toast already shown by API.req */ }
+            },
+
             async reloadPlugins() {
                 await API.reloadPlugins();
                 Toast.show('System plugins reloaded');
             },
+
+            async logout() {
+                try { await API.logout(); } catch (e) { /* ignore */ }
+                window.location.href = '/login';
+            },
+
+            async deletePlayer(playerId, playerName) {
+                if (!window.confirm(`Delete ${playerName}?`)) return;
+                await API.deletePlayer(playerId);
+                Toast.show('Player removed', 'success');
+                Router.navigate('players');
+            },
+
             searchPlayers(query) {
-                const cards = document.querySelectorAll('.player-card');
                 const q = query.toLowerCase();
-                cards.forEach(card => {
-                    const name = card.dataset.name;
-                    const id = card.dataset.id;
-                    if (name.includes(q) || id.includes(q)) {
-                        card.style.display = 'flex';
-                    } else {
-                        card.style.display = 'none';
-                    }
+                document.querySelectorAll('.player-card').forEach(card => {
+                    card.style.display = (card.dataset.name.includes(q) || card.dataset.id.includes(q)) ? 'flex' : 'none';
+                });
+            },
+
+            searchImportPlayers(query) {
+                const q = query.toLowerCase();
+                document.querySelectorAll('.import-player-item').forEach(item => {
+                    const name = item.dataset.name || '';
+                    const dob  = item.dataset.dob  || '';
+                    item.style.display = (!q || name.includes(q) || dob.includes(q)) ? 'flex' : 'none';
                 });
             }
         };
 
-        // --- UTILS ---
+        // ─── FIDE MODALS ─────────────────────────────────────────────────────────────
+        const FideModals = {
+            createTournament() {
+                Modals.open('♚ Create FIDE Tournament', `
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Tournament Name</label>
+                            <input id="fide-tname" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="e.g. City Open 2025">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Date</label>
+                                <input id="fide-tdate" type="date" class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Max Rounds</label>
+                                <input id="fide-trounds" type="number" value="7" min="1" max="15" class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Venue</label>
+                                <input id="fide-tvenue" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="Location">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Time Control</label>
+                                <select id="fide-ttc" class="input-dark w-full px-4 py-3 rounded-lg text-sm appearance-none">
+                                    <option value="Standard" class="bg-gray-900">Standard</option>
+                                    <option value="Rapid"    class="bg-gray-900">Rapid</option>
+                                    <option value="Blitz"    class="bg-gray-900">Blitz</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Arbiter</label>
+                                <input id="fide-tarbiter" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="Chief Arbiter name">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Chief Arbiter</label>
+                                <input id="fide-tchief" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="Optional">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Categories (comma-separated)</label>
+                            <input id="fide-tcats" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" value="Open" placeholder="e.g. U11,U13,U15,Open">
+                        </div>
+                        <div class="flex justify-end gap-3 pt-4">
+                            <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
+                            <button onclick="FideHandlers.submitFideTournament()" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Create</button>
+                        </div>
+                    </div>`);
+            },
+
+            registerPlayer(tid) {
+                Modals.open('Register Player', `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Full Name</label>
+                                <input id="fp-name" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="Kasparov, Garry">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">FIDE Rating</label>
+                                <input id="fp-rating" type="number" value="0" class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">DOB</label>
+                                <input id="fp-dob" type="date" class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Federation</label>
+                                <input id="fp-fed" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="RUS" maxlength="3">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Title</label>
+                                <select id="fp-title" class="input-dark w-full px-4 py-3 rounded-lg text-sm appearance-none">
+                                    <option value="" class="bg-gray-900">None</option>
+                                    <option value="GM"  class="bg-gray-900">GM</option>
+                                    <option value="IM"  class="bg-gray-900">IM</option>
+                                    <option value="FM"  class="bg-gray-900">FM</option>
+                                    <option value="CM"  class="bg-gray-900">CM</option>
+                                    <option value="WGM" class="bg-gray-900">WGM</option>
+                                    <option value="WIM" class="bg-gray-900">WIM</option>
+                                    <option value="WFM" class="bg-gray-900">WFM</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Club</label>
+                                <input id="fp-club" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="Club Name">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">FIDE ID</label>
+                                <input id="fp-fid" type="text" class="input-dark w-full px-4 py-3 rounded-lg text-sm" placeholder="Optional">
+                            </div>
+                        </div>
+                        <div class="flex justify-end gap-3 pt-4">
+                            <button onclick="Modals.close()" class="btn-ghost px-4 py-2 rounded-lg text-sm">Cancel</button>
+                            <button onclick="FideHandlers.submitFidePlayer('${tid}')" class="btn-neon px-6 py-2 rounded-lg text-sm font-medium">Register</button>
+                        </div>
+                    </div>`);
+            },
+
+            recordResult(tid, roundN, pairing) {
+                Modals.open('Record Result', `
+                    <p class="text-center text-gray-400 text-xs mb-2 font-mono">BOARD ${pairing.board} • ROUND ${roundN}</p>
+                    <div class="grid grid-cols-3 gap-4 my-6">
+                        <button onclick="FideHandlers.submitFideResult('${pairing.match_id}','1-0','${tid}')" class="group p-5 rounded-xl border border-white/10 bg-gradient-to-br from-white/10 to-transparent hover:from-white/20 transition-all text-center">
+                            <span class="w-6 h-6 rounded bg-white border border-gray-300 inline-block mb-2"></span>
+                            <span class="block font-bold text-white text-sm group-hover:scale-105 transition-transform">${pairing.white_name}</span>
+                            <span class="text-[10px] text-green-400 mt-1">1 - 0</span>
+                        </button>
+                        <button onclick="FideHandlers.submitFideResult('${pairing.match_id}','0.5-0.5','${tid}')" class="group p-5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-all text-center flex flex-col justify-center items-center">
+                            <i class="ph-bold ph-scales text-2xl text-gray-400 mb-2 group-hover:text-white"></i>
+                            <span class="text-[10px] text-gray-500">½ - ½</span>
+                        </button>
+                        <button onclick="FideHandlers.submitFideResult('${pairing.match_id}','0-1','${tid}')" class="group p-5 rounded-xl border border-white/10 bg-gradient-to-br from-gray-800/50 to-transparent hover:from-gray-700/50 transition-all text-center">
+                            <span class="w-6 h-6 rounded bg-gray-800 border border-gray-600 inline-block mb-2"></span>
+                            <span class="block font-bold text-white text-sm group-hover:scale-105 transition-transform">${pairing.black_name}</span>
+                            <span class="text-[10px] text-green-400 mt-1">0 - 1</span>
+                        </button>
+                    </div>`);
+            },
+
+            async playerCard(tid, pid) {
+                try {
+                    const card = await API.fideGetPlayerCard(tid, pid);
+                    Modals.open('Player Card', `
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="w-16 h-16 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-700/10 border border-amber-500/30 flex items-center justify-center font-display font-bold text-2xl text-amber-400">
+                                    ${(card.name || '?').substring(0, 2).toUpperCase()}
+                                </div>
+                                <div>
+                                    <h3 class="font-display font-bold text-xl text-white">${card.title ? `<span class="text-amber-400 mr-1">${card.title}</span>` : ''}${card.name}</h3>
+                                    <p class="text-xs text-gray-500 font-mono">${card.federation || ''} • Rating: ${card.rating} • ${card.category}</p>
+                                </div>
+                            </div>
+                            <div class="glass-panel rounded-lg overflow-hidden">
+                                <table class="w-full text-xs">
+                                    <thead class="bg-black/20 text-gray-500 font-mono uppercase">
+                                        <tr>
+                                            <th class="p-2">Rd</th>
+                                            <th class="p-2">Color</th>
+                                            <th class="p-2">Opponent</th>
+                                            <th class="p-2 text-right">Rtg</th>
+                                            <th class="p-2 text-center">Result</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${(card.rounds || []).map(r => `
+                                            <tr class="border-b border-white/5 hover:bg-white/5">
+                                                <td class="p-2 font-mono">${r.round}</td>
+                                                <td class="p-2">${r.color === 'W' ? '⬜' : '⬛'}</td>
+                                                <td class="p-2 text-white">${r.opponent_name || 'BYE'}</td>
+                                                <td class="p-2 text-right font-mono text-gray-400">${r.opponent_rating || '-'}</td>
+                                                <td class="p-2 text-center font-bold ${r.result === '1' ? 'text-green-400' : r.result === '0' ? 'text-red-400' : 'text-gray-300'}">
+                                                    ${r.result === '1' ? '1' : r.result === '0' ? '0' : r.result === '0.5' ? '½' : '*'}
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="flex justify-between text-xs text-gray-500 px-1">
+                                <span>Points: <strong class="text-accent-400">${card.total_points}</strong></span>
+                                <span>Performance: <strong class="text-amber-400">${card.performance_rating || '—'}</strong></span>
+                            </div>
+                        </div>`);
+                } catch (e) { Toast.show('Could not load player card', 'error'); }
+            }
+        };
+
+        // ─── FIDE HANDLERS ───────────────────────────────────────────────────────────
+        const FideHandlers = {
+            async submitFideTournament() {
+                const name = document.getElementById('fide-tname').value;
+                if (!name) return Toast.show('Name required', 'error');
+                const cats = document.getElementById('fide-tcats').value.split(',').map(c => c.trim()).filter(Boolean);
+                const t = await API.fideCreateTournament({
+                    name,
+                    tournament_date: document.getElementById('fide-tdate').value,
+                    max_rounds:      parseInt(document.getElementById('fide-trounds').value) || 7,
+                    venue:           document.getElementById('fide-tvenue').value,
+                    arbiter:         document.getElementById('fide-tarbiter').value,
+                    chief_arbiter:   document.getElementById('fide-tchief').value,
+                    time_control:    document.getElementById('fide-ttc').value,
+                    categories:      cats.length ? cats : ['Open'],
+                });
+                Modals.close();
+                Toast.show('FIDE tournament created');
+                Router.navigate('fide_detail', t.id);
+            },
+
+            async submitFidePlayer(tid) {
+                const name = document.getElementById('fp-name').value;
+                if (!name) return Toast.show('Name required', 'error');
+                await API.fideRegisterPlayer(tid, {
+                    name,
+                    rating:     parseInt(document.getElementById('fp-rating').value) || 0,
+                    dob:        document.getElementById('fp-dob').value,
+                    federation: document.getElementById('fp-fed').value.toUpperCase(),
+                    title:      document.getElementById('fp-title').value,
+                    club:       document.getElementById('fp-club').value,
+                    fide_id:    document.getElementById('fp-fid').value,
+                });
+                Modals.close();
+                Toast.show('Player registered');
+                Router.navigate('fide_detail', tid);
+            },
+
+            async createRound(tid, force = false) {
+                try {
+                    await API.fideCreateRound(tid, force);
+                    Toast.show('Round generated');
+                    State.fideTab = 'pairings';
+                    Modals.close();
+                    Router.navigate('fide_detail', tid);
+                } catch (e) {
+                    if (e.code === 'PENDING_MATCHES') {
+                        if (confirm('Previous round has pending matches. Force create new round?'))
+                            await FideHandlers.createRound(tid, true);
+                    } else {
+                        Toast.show(e.message, 'error');
+                    }
+                }
+            },
+
+            async removePlayer(tid, pid) {
+                await API.fideRemovePlayer(tid, pid);
+                Toast.show('Player removed');
+                Router.navigate('fide_detail', tid);
+            },
+
+            async submitFideResult(mid, result, tid) {
+                await API.fideRecordResult(mid, result);
+                Modals.close();
+                Toast.show('Result recorded');
+                Router.navigate('fide_detail', tid);
+            },
+        };
+
+        // ─── UTILS ───────────────────────────────────────────────────────────────────
         const Toast = {
             show(msg, type = 'success') {
                 const el = document.createElement('div');
                 const color = type === 'success' ? 'border-accent-500 text-accent-400' : 'border-red-500 text-red-400';
                 el.className = `glass-panel px-6 py-4 rounded-xl border-l-4 ${color} flex items-center shadow-2xl transform translate-x-full transition-transform duration-300`;
                 el.innerHTML = `<span class="font-medium text-sm">${msg}</span>`;
-                
                 document.getElementById('toast-container').appendChild(el);
                 requestAnimationFrame(() => el.classList.remove('translate-x-full'));
-                
                 setTimeout(() => {
                     el.classList.add('translate-x-full');
                     setTimeout(() => el.remove(), 300);
@@ -958,23 +2015,47 @@
         };
 
         const Loader = {
-            start() { 
+            start() {
                 const l = document.getElementById('global-loader');
-                l.classList.remove('hidden'); 
+                l.classList.remove('hidden');
                 requestAnimationFrame(() => l.classList.remove('opacity-0'));
             },
-            stop() { 
+            stop() {
                 const l = document.getElementById('global-loader');
                 l.classList.add('opacity-0');
                 setTimeout(() => l.classList.add('hidden'), 300);
             }
         };
 
-        // --- INIT ---
-        window.addEventListener('DOMContentLoaded', () => {
-            Router.navigate('dashboard');
-        });
+        // ─── INIT ────────────────────────────────────────────────────────────────────
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const me = await API.req('/api/auth/me');
+                State.currentUser = me;
 
+                const sidebarUser = document.getElementById('sidebar-username');
+                const sidebarRole = document.getElementById('sidebar-role');
+                if (sidebarUser) sidebarUser.textContent = me.username || me.name || 'User';
+                if (sidebarRole) sidebarRole.textContent = me.role.toUpperCase();
+
+                if (me.role === 'player') {
+                    document.getElementById('nav-dashboard').style.display = 'none';
+                    document.getElementById('nav-players').style.display   = 'none';
+                    const sysLabel  = document.getElementById('nav-system-label');
+                    const reloadBtn = document.getElementById('nav-reload-plugins');
+                    if (sysLabel)  sysLabel.style.display  = 'none';
+                    if (reloadBtn) reloadBtn.style.display = 'none';
+                    Router.navigate('player_dashboard');
+                } else if (me.role === 'admin') {
+                    Router.navigate('admin_dashboard');
+                } else {
+                    Router.navigate('dashboard');
+                }
+            } catch (e) {
+                window.location.href = '/login';
+            }
+        });
     </script>
 </body>
+
 </html>

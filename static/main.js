@@ -15,10 +15,10 @@ function showAlert(message, type = 'success') {
     const container = document.getElementById('alert-container');
     const alert = document.createElement('div');
     const icons = {
-        success: '✓',
+        success: '',
         error: '✕',
         info: 'ℹ',
-        warning: '⚠'
+        warning: ''
     };
     alert.className = `alert alert-${type}`;
     alert.innerHTML = `<span style="font-size: 18px;">${icons[type] || icons.info}</span><span>${message}</span>`;
@@ -60,6 +60,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 async function apiCall(url, method = 'GET', data = null) {
+    console.log(`[API] ${method} ${url}`, data);
     try {
         const options = {
             method,
@@ -67,12 +68,16 @@ async function apiCall(url, method = 'GET', data = null) {
         };
         if (data) options.body = JSON.stringify(data);
         const response = await fetch(url, options);
+        console.log(`[API] Response status: ${response.status}`);
         const result = await response.json();
         if (!response.ok) {
+            console.error('[API] Error response:', result);
             throw new Error(result.error || 'Request failed');
         }
+        console.log('[API] Success:', result);
         return result;
     } catch (error) {
+        console.error('[API] Exception:', error);
         showAlert(error.message, 'error');
         throw error;
     }
@@ -183,7 +188,7 @@ async function loadTournament(tournamentId, element) {
                 const div = document.createElement('div');
                 div.className = 'list-item';
                 const status = player.able_to_play ? 'active' : 'eliminated';
-                const symbol = player.able_to_play ? '✓' : '✗';
+                const symbol = player.able_to_play ? '' : '';
                 div.innerHTML = `
                             <span style="font-weight: 500;">${player.name}</span>
                             <span class="badge badge-${status}">${symbol} ${status.toUpperCase()}</span>
@@ -329,7 +334,7 @@ async function createRound() {
             return;
         }
         const result = await apiCall(`/api/tournaments/${currentTournament}/rounds`, 'POST', {
-            strategy,
+            round_type: strategy,
             players_per_match: playersPerMatch
         });
         showAlert(`Round #${result.ordinal} created with ${result.matches} match(es)`, 'success');
@@ -366,7 +371,7 @@ async function showMatches() {
         if (data.round_type === 'knockout') {
             html += `
                         <div class="alert alert-error" style="margin-bottom: 20px;">
-                            <span style="font-size: 18px;">⚠</span>
+                            <span style="font-size: 18px;"></span>
                             <span>Warning: Losers will be eliminated from the tournament</span>
                         </div>
                     `;
@@ -388,7 +393,7 @@ async function showMatches() {
                                 <div class="match-players">${match.player_names.join(' vs ')}</div>
                                 <div style="margin-top: 12px;">
                                     <span class="badge badge-${statusClass}">
-                                        ${match.status === 'pending' ? '⏱' : '✓'}
+                                        ${match.status === 'pending' ? '⏱' : ''}
                                         ${match.status_text}
                                     </span>
                                 </div>

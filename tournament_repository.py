@@ -23,18 +23,30 @@ class SQLiteTournamentRepository(ITournamentRepository):
         with self._get_connection() as conn:
             cur = conn.cursor()
 
-            # Players table
+            
             cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS players (
                     id TEXT PRIMARY KEY,
                     name TEXT NOT NULL,
-                    created_at TEXT
+                    created_at TEXT,
+                    date_of_birth TEXT,
+                    category TEXT
                 )
             """
             )
+            try:
+                cur.execute("ALTER TABLE players ADD COLUMN date_of_birth TEXT")
+            except sqlite3.OperationalError as e:
+                if "duplicate column" not in str(e).lower():
+                    raise
+            try:
+                cur.execute("ALTER TABLE players ADD COLUMN category TEXT")
+            except sqlite3.OperationalError as e:
+                if "duplicate column" not in str(e).lower():
+                    raise
 
-            # Tournaments table
+            
             cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS tournaments (
@@ -46,7 +58,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
             """
             )
 
-            # Tournament players table
+            
             cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS tournament_players (
@@ -59,7 +71,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
             """
             )
 
-            # Rounds table
+            
             cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS rounds (
@@ -72,7 +84,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
             """
             )
 
-            # Matches table (updated for n-player support)
+            
             cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS matches (
@@ -85,12 +97,14 @@ class SQLiteTournamentRepository(ITournamentRepository):
                     winner_ids TEXT,  -- JSON array of winner IDs
                     rankings TEXT,    -- JSON object of player_id -> rank
                     auto_bye INTEGER DEFAULT 0,
-                    players_per_match INTEGER DEFAULT 2
+                    players_per_match INTEGER DEFAULT 2,
+                    board_no INTEGER DEFAULT NULL,
+                    colors TEXT DEFAULT NULL  -- JSON array e.g. ["white","black"]
                 )
             """
             )
 
-            # Stats table
+            
             cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS stats (
@@ -106,7 +120,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
             """
             )
 
-            # Waiting list table
+            
             cur.execute(
                 """
                 CREATE TABLE IF NOT EXISTS waiting_list (
@@ -124,8 +138,18 @@ class SQLiteTournamentRepository(ITournamentRepository):
         """Save a player to the database."""
         with self._get_connection() as conn:
             conn.execute(
-                "INSERT OR REPLACE INTO players (id, name, created_at) VALUES (?, ?, ?)",
-                (player.id, player.name, player.created_at),
+                """
+                INSERT OR REPLACE INTO players 
+                (id, name, created_at, date_of_birth, category) 
+                VALUES (?, ?, ?, ?, ?)
+            """,
+                (
+                    player.id,
+                    player.name,
+                    player.created_at,
+                    player.date_of_birth,
+                    player.category,
+                ),
             )
             conn.commit()
 
@@ -138,7 +162,28 @@ class SQLiteTournamentRepository(ITournamentRepository):
 
             if row:
                 return Player(
-                    id=row["id"], name=row["name"], created_at=row["created_at"]
+                    id=row["id"],
+                    name=row["name"],
+                    created_at=row["created_at"],
+                    date_of_birth=row["date_of_birth"],
+                    category=row["category"],
+                )
+            return None
+
+    def get_player_by_name(self, name: str) -> Player | None:
+        """Get a player by name (case-insensitive)."""
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM players WHERE lower(name) = ?", (name.lower(),)
+            ).fetchone()
+
+            if row:
+                return Player(
+                    id=row["id"],
+                    name=row["name"],
+                    created_at=row["created_at"],
+                    date_of_birth=row["date_of_birth"],
+                    category=row["category"],
                 )
             return None
 
@@ -148,19 +193,42 @@ class SQLiteTournamentRepository(ITournamentRepository):
             rows = conn.execute("SELECT * FROM players ORDER BY name").fetchall()
 
             return [
-                Player(id=r["id"], name=r["name"], created_at=r["created_at"])
+                Player(
+                    id=r["id"],
+                    name=r["name"],
+                    created_at=r["created_at"],
+                    date_of_birth=r["date_of_birth"],
+                    category=r["category"],
+                )
                 for r in rows
             ]
+
+    def delete_player(self, player_id: str) -> None:
+        with self._get_connection() as conn:
+            conn.execute(
+                "DELETE FROM tournament_players WHERE player_id = ?", (player_id,)
+            )
+            conn.execute("DELETE FROM stats WHERE player_id = ?", (player_id,))
+            conn.execute("DELETE FROM players WHERE id = ?", (player_id,))
+            conn.commit()
 
     def save_match(self, match: Match) -> None:
         """Save a match to the database."""
         with self._get_connection() as conn:
+            
+            try:
+                conn.execute("ALTER TABLE matches ADD COLUMN board_no INTEGER DEFAULT NULL")
+                conn.execute("ALTER TABLE matches ADD COLUMN colors TEXT DEFAULT NULL")
+                conn.commit()
+            except Exception:
+                pass  
+
             conn.execute(
                 """
-                INSERT INTO matches 
+                INSERT OR REPLACE INTO matches 
                 (id, round_id, tournament_id, player_ids, scheduled_at, result, 
-                 winner_ids, rankings, auto_bye, players_per_match)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 winner_ids, rankings, auto_bye, players_per_match, board_no, colors)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
                 (
                     match.id,
@@ -173,6 +241,8 @@ class SQLiteTournamentRepository(ITournamentRepository):
                     json.dumps(match.rankings) if match.rankings else None,
                     1 if match.auto_bye else 0,
                     match.players_per_match,
+                    match.board_no,
+                    json.dumps(match.colors) if match.colors else None,
                 ),
             )
             conn.commit()
@@ -357,6 +427,7 @@ class SQLiteTournamentRepository(ITournamentRepository):
 
     def _row_to_match(self, row) -> Match:
         """Convert database row to Match object."""
+        keys = row.keys() if hasattr(row, 'keys') else []
         return Match(
             id=row["id"],
             round_id=row["round_id"],
@@ -368,4 +439,8 @@ class SQLiteTournamentRepository(ITournamentRepository):
             rankings=json.loads(row["rankings"]) if row["rankings"] else None,
             auto_bye=bool(row["auto_bye"]),
             players_per_match=row["players_per_match"],
-        )
+            board_no=row["board_no"] if "board_no" in keys else None,
+            colors=json.loads(row["colors"]) if (
+                "colors" in keys and row["colors"]
+            ) else None,
+        )   

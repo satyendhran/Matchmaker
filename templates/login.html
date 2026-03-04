@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS | Login</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Space+Grotesk:wght@300;500;700&display=swap"
+        rel="stylesheet">
+
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#050505',
+                            800: '#0a0a0a',
+                            700: '#121212',
+                        },
+                        accent: {
+                            400: '#818cf8',
+                            500: '#6366f1',
+                            glow: 'rgba(99, 102, 241, 0.15)'
+                        },
+                        glass: {
+                            surface: 'rgba(255, 255, 255, 0.03)',
+                            border: 'rgba(255, 255, 255, 0.08)',
+                            highlight: 'rgba(255, 255, 255, 0.1)',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #050505;
+            color: #e5e5e5;
+            overflow-x: hidden;
+        }
+
+        .noise-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 50;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        .ambient-glow {
+            position: fixed;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, rgba(0, 0, 0, 0) 70%);
+            top: -100px;
+            left: -100px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .glass-panel {
+            background: rgba(20, 20, 20, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        .btn-neon {
+            background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-neon::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-neon:hover::after {
+            left: 100%;
+        }
+
+        .btn-neon:hover {
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #a1a1aa;
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .input-dark {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .input-dark:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 1px #6366f1;
+            background: rgba(0, 0, 0, 0.5);
+        }
+
+        .role-tab {
+            flex: 1;
+            padding: 10px 12px;
+            text-align: center;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            transition: all 0.2s;
+            color: #71717a;
+            border-radius: 10px;
+        }
+
+        .role-tab.active {
+            background: rgba(99, 102, 241, 0.15);
+            color: #c7d2fe;
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .role-tab:hover {
+            color: white;
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            border: 1px solid transparent;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.12);
+            color: #6ee7b7;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .alert-info {
+            background: rgba(59, 130, 246, 0.12);
+            color: #93c5fd;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+    </style>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body class="font-sans text-sm antialiased selection:bg-accent-500 selection:text-white">
+    <div class="noise-overlay"></div>
+    <div class="ambient-glow"></div>
+
+    <div class="min-h-screen flex items-center justify-center px-6 py-12 relative z-10">
+        <div class="glass-panel w-full max-w-lg rounded-2xl overflow-hidden">
+            <div class="p-8 border-b border-white/10 bg-white/5">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="w-12 h-12 bg-gradient-to-br from-accent-500 to-purple-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-accent-500/20">
+                        <i class="ph-bold ph-hexagon text-xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-display font-bold text-2xl text-white tracking-tight">NEXUS</h1>
+                        <p class="text-xs text-gray-500 font-mono mt-1">TOURNAMENT ENGINE LOGIN</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-8">
+                <div class="flex gap-2 mb-6">
+                    <button class="role-tab active" data-role="admin">Admin</button>
+                    <button class="role-tab" data-role="player">Player</button>
+                </div>
+
+                <div id="alert-container"></div>
+
+                <!-- Admin Login Form -->
+                <form id="admin-form" class="login-form active space-y-4" data-role="admin">
+                    <div>
+                        <label for="admin-username"
+                            class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Username</label>
+                        <input type="text" id="admin-username" name="username" required autofocus
+                            class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label for="admin-password"
+                            class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Password</label>
+                        <input type="password" id="admin-password" name="password" required
+                            class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                    </div>
+                    <button type="submit"
+                        class="btn-neon w-full py-3 rounded-lg text-sm font-bold uppercase tracking-wider">Login as
+                        Admin</button>
+                </form>
+
+                <!-- Player Login Form -->
+                <form id="player-form" class="login-form space-y-4 hidden" data-role="player">
+                    <div>
+                        <label for="player-name" class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Full
+                            Name</label>
+                        <input type="text" id="player-name" name="name" required
+                            class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label for="player-dob" class="block text-xs font-mono text-gray-500 mb-1.5 uppercase">Date of
+                            Birth</label>
+                        <input type="date" id="player-dob" name="date_of_birth" required
+                            class="input-dark w-full px-4 py-3 rounded-lg text-sm">
+                    </div>
+                    <button type="submit"
+                        class="btn-neon w-full py-3 rounded-lg text-sm font-bold uppercase tracking-wider">Login as
+                        Player</button>
+                </form>
+
+
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/auth';
+
+        // Role tab switching
+        document.querySelectorAll('.role-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // Remove active from all tabs and forms
+                document.querySelectorAll('.role-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.login-form').forEach(f => {
+                    f.classList.remove('active');
+                    f.classList.add('hidden');
+                });
+
+                // Activate clicked tab
+                tab.classList.add('active');
+                const role = tab.dataset.role;
+                const form = document.getElementById(`${role}-form`);
+                form.classList.add('active');
+                form.classList.remove('hidden');
+
+                // Clear alerts
+                document.getElementById('alert-container').innerHTML = '';
+            });
+        });
+
+        // Show alert
+        function showAlert(message, type = 'error') {
+            const container = document.getElementById('alert-container');
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        // Admin login
+        document.getElementById('admin-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('admin-username').value;
+            const password = document.getElementById('admin-password').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/login/admin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    localStorage.setItem('session_id', data.session_id);
+                    showAlert('Login successful! Redirecting...', 'success');
+                    setTimeout(() => window.location.href = '/', 1000);
+                } else {
+                    showAlert(data.error || 'Login failed');
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.');
+            }
+        });
+
+        // Player login
+        document.getElementById('player-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('player-name').value;
+            const date_of_birth = document.getElementById('player-dob').value;
+
+            try {
+                const response = await fetch(`${API_BASE}/login/player`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ name, date_of_birth })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    localStorage.setItem('session_id', data.session_id);
+                    showAlert('Login successful! Redirecting...', 'success');
+                    setTimeout(() => window.location.href = '/', 1000);
+                } else {
+                    showAlert(data.error || 'Login failed');
+                }
+            } catch (error) {
+                showAlert('Network error. Please try again.');
+            }
+        });
+
+    </script>
+</body>
+
+</html>

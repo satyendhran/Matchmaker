@@ -15,7 +15,7 @@ class StandardPointsCalculator(IPointsCalculator):
     ) -> float:
         """Calculate points for standard scoring."""
         if result.is_draw:
-            # Equal points for all players in a draw
+            
             return 1.0 / len(match.player_ids)
 
         if player_id in result.winner_ids:
@@ -66,7 +66,7 @@ class RankingPointsCalculator(IPointsCalculator):
         rank = result.rankings[player_id]
         total_players = len(match.player_ids)
 
-        # Award points: 1st place = total_players points, 2nd = total_players-1, etc.
+        
         points = max(0, total_players - rank + 1)
 
         return float(points)
@@ -99,7 +99,7 @@ class EloCalculator(IPointsCalculator):
         else:
             actual_score = 0.0
 
-        # Simplified: assume expected score is 0.5 (equal opponents)
+        
         expected_score = 0.5
 
         rating_change = self.k_factor * (actual_score - expected_score)
@@ -126,7 +126,7 @@ class PercentagePointsCalculator(IPointsCalculator):
         rank = result.rankings[player_id]
         total_players = len(match.player_ids)
 
-        # Points = (players beaten / total players) * 100
+        
         players_beaten = total_players - rank
         percentage = (
             (players_beaten / (total_players - 1)) * 100 if total_players > 1 else 0
@@ -158,7 +158,7 @@ class CustomWeightedCalculator(IPointsCalculator):
     ) -> float:
         """Calculate points using custom weights."""
         if result.is_draw:
-            # Average points for all players in draw
+            
             total_points = sum(self.weights.values())
             return total_points / len(match.player_ids)
 

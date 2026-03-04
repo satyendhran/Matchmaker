@@ -1,3 +1,5 @@
 tournament.db
 .ruff_cache
 __pycache__
+.env
+chess_fide.db

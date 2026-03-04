@@ -1,7 +1,8 @@
 import datetime
 import uuid
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 
 
@@ -12,6 +13,13 @@ class Player:
     id: str
     name: str
     created_at: str
+    date_of_birth: str | None = None
+    category: str | None = None
+    email: str | None = None
+    
+    rating: float = 1500.0
+    rating_deviation: float = 350.0
+    rating_volatility: float = 0.06
 
 
 @dataclass
@@ -21,15 +29,21 @@ class Match:
     id: str
     round_id: str
     tournament_id: str
-    player_ids: list[str]  # Changed from p1_id, p2_id to support n-player games
+    player_ids: list[str]  
     scheduled_at: str
     result: str | None = None
-    winner_ids: list[str] | None = None  # Support multiple winners/ties
+    winner_ids: list[str] | None = None  
     rankings: dict[str, int] | None = (
-        None  # player_id -> rank (1=winner, 2=second, etc)
+        None  
     )
     auto_bye: bool = False
-    players_per_match: int = 2  # Default to 2-player games
+    players_per_match: int = 2  
+    board_no: int | None = None  
+    colors: list[str] | None = None  
+    
+    appeal_status: str | None = None  
+    appeal_reason: str | None = None
+    forfeit_player_id: str | None = None
 
 
 @dataclass
@@ -38,7 +52,7 @@ class MatchResult:
 
     match_id: str
     winner_ids: list[str]
-    rankings: dict[str, int]  # player_id -> rank
+    rankings: dict[str, int]  
     is_draw: bool = False
 
 
@@ -49,7 +63,63 @@ class RoundConfig:
     tournament_id: str
     round_type: str
     players_per_match: int = 2
+    force_create: bool = False
     additional_params: dict[str, Any] | None = None
+    start_time: str | None = None  
+    end_time: str | None = None  
+
+
+
+
+
+
+
+class RoundCompletionPolicy(str, Enum):
+    """Determines whether a new round can start with pending matches.
+
+    STRICT  (default) — all matches in the previous round must be
+                        completed before a new round can be created.
+    FLEXIBLE          — a new round can be created even if the
+                        previous round has unfinished matches
+                        (e.g. FIDE Swiss allows this).
+    """
+
+    STRICT = "strict"
+    FLEXIBLE = "flexible"
+
+
+@dataclass
+class TournamentConfig:
+    """Per-tournament settings (extensible)."""
+
+    tournament_id: str
+    round_completion_policy: RoundCompletionPolicy = RoundCompletionPolicy.STRICT
+    min_rounds_before_withdrawal: int = 0
+    default_calculator: str = "standard"
+    default_strategy: str = "swiss"
+
+
+@dataclass
+class TournamentTemplate:
+    """Reusable tournament blueprint."""
+
+    name: str
+    round_type: str
+    players_per_match: int = 2
+    calculator: str = "standard"
+    num_rounds: int | None = None
+    round_completion_policy: RoundCompletionPolicy = RoundCompletionPolicy.STRICT
+    additional_params: dict[str, Any] | None = None
+
+
+@dataclass
+class TournamentPhase:
+    """Links parent → child tournament for multi-stage tournaments."""
+
+    parent_tournament_id: str
+    child_tournament_id: str
+    phase_type: str  
+    qualification_count: int = 0  
 
 
 class IMatchmakingStrategy(ABC):
@@ -119,6 +189,16 @@ class ITournamentRepository(ABC):
 
     @abstractmethod
     def get_player(self, player_id: str) -> Player | None:
+        pass
+
+    @abstractmethod
+    def get_player_by_name(self, name: str) -> Player | None:
+        """Get a player by name (case-insensitive)."""
+        pass
+
+    @abstractmethod
+    def delete_player(self, player_id: str) -> None:
+        """Delete a player and all their tournament/stats records."""
         pass
 
     @abstractmethod

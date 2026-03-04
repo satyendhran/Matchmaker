@@ -27,7 +27,6 @@ from tournament_strategies import (
 class Style:
     """Apple-inspired color palette and styling constants."""
 
-    # Colors - Apple Design Language
     BG_PRIMARY = "#F5F5F7"  # Light gray background
     BG_SECONDARY = "#FFFFFF"  # White cards
     BG_SIDEBAR = "#FAFAFA"  # Sidebar background
@@ -835,7 +834,7 @@ class TournamentApp:
 
         players = self.repository.get_tournament_players(self.current_tournament)
         for p in players:
-            status_symbol = "✓" if p.get("able_to_play", 1) == 1 else "✗"
+            status_symbol = "" if p.get("able_to_play", 1) == 1 else ""
             self.tournament_players.insert(tk.END, f"  {status_symbol} {p['name']}")
 
     def add_players_to_tournament(self):
@@ -1047,7 +1046,7 @@ class TournamentApp:
         if round_type == "knockout":
             self.matches_text.insert(
                 tk.END,
-                "⚠️  WARNING: Losers will be eliminated from this tournament\n\n",
+                "️  WARNING: Losers will be eliminated from this tournament\n\n",
                 "warning",
             )
 
@@ -1070,7 +1069,7 @@ class TournamentApp:
 
             if m.result:
                 if m.auto_bye:
-                    status = "✓ BYE (Auto-advance)"
+                    status = " BYE (Auto-advance)"
                     status_tag = "bye"
                 elif m.result == "draw":
                     status = "⚖️  DRAW"
@@ -1093,7 +1092,7 @@ class TournamentApp:
                             for lid in losers:
                                 lp = self.repository.get_player(lid)
                                 loser_names.append(lp.name if lp else lid[:8])
-                            status += f"\n   ✗ Eliminated: {', '.join(loser_names)}"
+                            status += f"\n    Eliminated: {', '.join(loser_names)}"
             else:
                 status = "⏳ Pending"
                 status_tag = "pending"
